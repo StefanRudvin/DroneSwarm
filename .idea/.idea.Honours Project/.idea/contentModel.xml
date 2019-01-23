@@ -17,7 +17,6 @@
           <e p="LandingBlockController.cs" t="Include" />
           <e p="Levels.cs" t="Include" />
           <e p="MoveService.cs" t="Include" />
-          <e p="MoveToTarget.cs" t="Include" />
           <e p="Old" t="Include">
             <e p="GameControllerOld.cs" t="Include" />
             <e p="OldDroneController.cs" t="Include" />

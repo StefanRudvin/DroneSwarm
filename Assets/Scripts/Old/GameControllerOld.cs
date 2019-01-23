@@ -35,7 +35,7 @@ public class GameControllerOld : MonoBehaviour {
 	void assignFreeDronesToAvailable(){
 		List<GameObject> dronesToMove = new List<GameObject>();
 		foreach (GameObject drone in movingToLandingList) {
-			if (!drone.GetComponent<DroneController>().isMovingToLanding) {
+			if (!drone.GetComponent<DroneController>().isMovingToBuildingblock) {
 				availableDrones.Add(drone);
 				dronesToMove.Add(drone);
 			}

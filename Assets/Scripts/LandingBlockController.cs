@@ -1,27 +1,28 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 using UnityEngine;
 
-public class LandingBlockController : MonoBehaviour {
-	
-	
-	public GameObject topLeftTarget;
-	public GameObject topRightTarget;
-	public GameObject bottomLeftTarget;
-	public GameObject bottomRightTarget;
-	
+public class LandingBlockController : MonoBehaviour
+{
+    public GameObject _topLeftTarget;
+    public GameObject _topRightTarget;
+    public GameObject _bottomLeftTarget;
+    public GameObject _bottomRightTarget;
 
-	public int requiredDrones = 4;
+    public GameObject _basicBlock;
 
-	public bool isTargeted = false;
+    public int requiredDrones = 4;
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+    public bool isTargeted = false;
+    
+    public void attachBlock()
+    {
+        var pos = transform.position;
+        Quaternion rotation= transform.rotation;
+        pos.y += 0.5f;
+        Instantiate(_basicBlock, pos, rotation);
+        
+        //GameObject.Instantiate(_basicBlock, gameObject.transform);
+        // Destroy from GameController too?
+        Destroy(gameObject);
+    }
 }

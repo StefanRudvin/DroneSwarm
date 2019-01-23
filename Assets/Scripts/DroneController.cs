@@ -7,7 +7,8 @@ using UnityEngine.AI;
 
 public class DroneController : MonoBehaviour
 {
-    public bool isMovingToLanding = false;
+    public bool isMovingToLandingBlock = false;
+    public bool isMovingToBuildingblock = false;
 
     public int _normalSpeed = 2;
     public int _normalAngularSpeed = 60;
@@ -23,7 +24,7 @@ public class DroneController : MonoBehaviour
     
     public List<GameObject> targets = new List<GameObject>();
     
-    private GameObject startPosition;
+    public GameObject startPosition;
     public List<GameObject> props = new List<GameObject>();
 
     private MoveService _moveService;
@@ -50,6 +51,11 @@ public class DroneController : MonoBehaviour
         }
     }
 
+    public void resetTarget()
+    {
+        Target = startPosition;
+    }
+
     public void setLiftingSpeed()
     {
         NavMeshAgent agent = gameObject.GetComponent<NavMeshAgent>();
@@ -72,6 +78,20 @@ public class DroneController : MonoBehaviour
     void move()
     {
         _moveService.move();
+    }
+    
+    public void AttachToTarget()
+    {
+        var joint = Target.gameObject.AddComponent<FixedJoint>();
+        joint.massScale = 100;
+        joint.connectedMassScale = 100f;
+        joint.connectedBody = _rigidbody;
+    }
+    
+    public void DetachFromTarget()
+    {
+        var joint = Target.gameObject.GetComponent<FixedJoint>();
+        joint.connectedBody = null;
     }
 
     void spinProps()

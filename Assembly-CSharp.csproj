@@ -65,7 +65,6 @@
     <Compile Include="Assets\Scripts\LandingBlockController.cs" />
     <Compile Include="Assets\Scripts\Levels.cs" />
     <Compile Include="Assets\Scripts\MoveService.cs" />
-    <Compile Include="Assets\Scripts\MoveToTarget.cs" />
     <Compile Include="Assets\Scripts\Old\GameControllerOld.cs" />
     <Compile Include="Assets\Scripts\Old\OldDroneController.cs" />
     <Compile Include="Assets\Scripts\StartPadController.cs" />

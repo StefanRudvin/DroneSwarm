@@ -34,8 +34,16 @@ public class MoveService : MonoBehaviour
         // If close to object, just set it to it.
         if (vector3distanceToTarget < 1.5)
         {
-            AttachToTarget();
-            _controller.waitingAtTarget = true;
+            if (_controller.isMovingToBuildingblock)
+            {
+                _controller.AttachToTarget();
+                _controller.waitingAtTarget = true;
+            }
+            
+            if (_controller.isMovingToLandingBlock)
+            {
+                _controller.waitingAtTarget = true;
+            }
         }
         else
         {
@@ -44,15 +52,9 @@ public class MoveService : MonoBehaviour
         }
         
     }
-
-    void AttachToTarget()
-    {
-        var joint = _controller.Target.gameObject.AddComponent<FixedJoint>();
-        joint.massScale = 100;
-        joint.connectedMassScale = 100f;
-        joint.connectedBody = _controller._rigidbody;
-    }
     
+    
+
     void moveTowardsTargetLevel(int targetLevel)
     {
         // If close to the y axis

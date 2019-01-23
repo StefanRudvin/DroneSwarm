@@ -6,24 +6,26 @@ using UnityEngine;
 
 public class GameController : MonoBehaviour {
 	public List<GameObject> availableDrones = new List<GameObject> ();
-	public List<GameObject> movingToLandingList = new List<GameObject> ();
+	
 	public List<GameObject> buildingBlocks = new List<GameObject> ();
-	public List<GameObject> landingPads = new List<GameObject> ();
+	public List<GameObject> landingBlocks = new List<GameObject> ();
+	
 	public GameObject startPad;
 	public GameObject sampleDrone;
 
-	void Start () {
+	private void Start () {
 		instantiateDrones();
 	}
 
 	void instantiateDrones() {
-		List<GameObject> startPads = startPad.GetComponent<StartPadController>().startPads;
+		var startPads = startPad.GetComponent<StartPadController>().startPads;
 
-		foreach (GameObject pad in startPads) {
-			GameObject drone = Instantiate(sampleDrone, pad.transform) as GameObject;
+		foreach (var pad in startPads) {
+			var drone = Instantiate(sampleDrone, pad.transform);
 			drone.transform.localScale = new Vector3(0.15f, 0.15f, 0.15f);
-			DroneController droneController = drone.GetComponent<DroneController>();
+			var droneController = drone.GetComponent<DroneController>();
 			droneController.Target = pad;
+			droneController.startPosition = pad;
 			availableDrones.Add(drone);
 		}
 	}
@@ -38,20 +40,21 @@ public class GameController : MonoBehaviour {
 	void assignDronesToBuildingBlocks() {
 		foreach (var buildingBlock in buildingBlocks) {
 			var blockController = buildingBlock.GetComponent<BlockController>();
-			if (!blockController.isTargeted && availableDrones.Count >= blockController.requiredDrones) {
-				Debug.Log("found a building block, assigning drones to it...");
+			
+			if (blockController._isTargeted || availableDrones.Count < blockController._requiredDrones) continue;
+			
+			Debug.Log("found a building block, assigning drones to it...");
 
-				List<GameObject> extractedDrones = getNAvailableDrones(blockController.requiredDrones);
-				blockController.assignDronesToBuildingBlock(extractedDrones);								
-			}
+			List<GameObject> extractedDrones = getNAvailableDrones(blockController._requiredDrones);
+			blockController.assignDronesToBuildingBlock(extractedDrones);
 		}
 	}
 
-	public List<GameObject> getNAvailableDrones(int requiredDrones)
+	private List<GameObject> getNAvailableDrones(int requiredDrones)
 	{
 		List<GameObject> extractedDrones = new List<GameObject> ();
 
-		for (int i = 0; i < requiredDrones; i++)
+		for (var i = 0; i < requiredDrones; i++)
 		{
 			GameObject drone = availableDrones[0];
 			extractedDrones.Add(drone);
@@ -62,7 +65,7 @@ public class GameController : MonoBehaviour {
 
 	public LandingBlockController getFreeLandingBlock(int dronesCount)
 	{
-		foreach (GameObject landingPad in landingPads)
+		foreach (GameObject landingPad in landingBlocks)
 		{
 			LandingBlockController landingController = landingPad.GetComponent<LandingBlockController>();
 			
@@ -75,18 +78,8 @@ public class GameController : MonoBehaviour {
 		return null;
 	}
 
-	void assignFreeDronesToAvailable(){
-		var dronesToMove = new List<GameObject>();
-		foreach (GameObject drone in movingToLandingList) {
-			if (!drone.GetComponent<DroneController>().isMovingToLanding) {
-				availableDrones.Add(drone);
-				
-				dronesToMove.Add(drone);
-			}
-		}
-
-		foreach (GameObject drone in dronesToMove) {
-			movingToLandingList.Remove(drone);
-		}
+	public void receiveFreeDrones(List<GameObject> drones)
+	{
+		foreach (var drone in new List<GameObject> (drones)) availableDrones.Add(drone);
 	}
 }
