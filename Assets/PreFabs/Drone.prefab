@@ -514,11 +514,14 @@ MonoBehaviour:
   _liftingSpeed: 1
   _liftingAngularSpeed: 30
   waitingAtTarget: 0
-  isLifting: 0
   level: 0
   Target: {fileID: 0}
-  targets: []
-  props: []
+  startPosition: {fileID: 0}
+  props:
+  - {fileID: 1031522590450740}
+  - {fileID: 1114059280140680}
+  - {fileID: 1020112497056180}
+  - {fileID: 1601148140398366}
   _rigidbody: {fileID: 0}
 --- !u!195 &195684425660374162
 NavMeshAgent:

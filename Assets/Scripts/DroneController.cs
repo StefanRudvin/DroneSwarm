@@ -17,12 +17,9 @@ public class DroneController : MonoBehaviour
     public int _liftingAngularSpeed = 5;
 
     public bool waitingAtTarget;
-    public bool isLifting;
     public int level;
     
     public GameObject Target;
-    
-    public List<GameObject> targets = new List<GameObject>();
     
     public GameObject startPosition;
     public List<GameObject> props = new List<GameObject>();

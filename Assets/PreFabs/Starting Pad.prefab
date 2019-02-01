@@ -54,6 +54,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4623048007972152}
+  - component: {fileID: 208715451148444540}
   m_Layer: 0
   m_Name: TRUCK_BLUE
   m_TagString: Untagged
@@ -2384,7 +2385,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1598074572617878}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -3.1999998, y: 0.23000002, z: -1.7}
+  m_LocalPosition: {x: -3.1999998, y: 0.23000002, z: 99.8}
   m_LocalScale: {x: 10.98, y: 3.62, z: 2.11}
   m_Children:
   - {fileID: 4828530928205090}
@@ -6212,3 +6213,18 @@ SphereCollider:
   serializedVersion: 2
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!208 &208715451148444540
+NavMeshObstacle:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1059512901624682}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 0.5, y: 0.5, z: 0.5}
+  m_MoveThreshold: 0.1
+  m_Carve: 0
+  m_CarveOnlyStationary: 1
+  m_Center: {x: 0, y: 0, z: 0}
+  m_TimeToStationary: 0.5

@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ContentModelStore">
     <e p="$PROJECT_DIR$" t="IncludeRecursive">
+      <e p="Assembly-CSharp-Editor-firstpass.csproj" t="IncludeRecursive" />
+      <e p="Assembly-CSharp-firstpass.csproj" t="IncludeRecursive" />
       <e p="Assembly-CSharp.csproj" t="IncludeRecursive" />
       <e p="Assets" t="Include">
         <e p="Drone" t="Include">
@@ -11,18 +13,103 @@
         </e>
         <e p="Scripts" t="Include">
           <e p="AController.cs" t="Include" />
-          <e p="BlockController.cs" t="Include" />
+          <e p="CitizenController.cs" t="Include" />
+          <e p="ContainerController.cs" t="Include" />
+          <e p="ContainerModel.cs" t="Include" />
+          <e p="ContainerPlan.cs" t="Include" />
           <e p="DroneController.cs" t="Include" />
           <e p="GameController.cs" t="Include" />
-          <e p="LandingBlockController.cs" t="Include" />
+          <e p="GeneticAlgorithm.cs" t="Include" />
+          <e p="LandingContainerController.cs" t="Include" />
           <e p="Levels.cs" t="Include" />
           <e p="MoveService.cs" t="Include" />
+          <e p="Obstacle.cs" t="Include" />
           <e p="Old" t="Include">
             <e p="GameControllerOld.cs" t="Include" />
             <e p="OldDroneController.cs" t="Include" />
           </e>
+          <e p="PlatformWarning.cs" t="Include" />
+          <e p="Player" t="Include">
+            <e p="CameraController.cs" t="Include" />
+            <e p="PlayerController.cs" t="Include" />
+          </e>
+          <e p="ShipController.cs" t="Include" />
           <e p="StartPadController.cs" t="Include" />
+          <e p="System" t="Include">
+            <e p="Constants.cs" t="Include" />
+            <e p="DDOL.cs" t="Include" />
+            <e p="GameManager.cs" t="Include" />
+            <e p="MainMenuController.cs" t="Include" />
+            <e p="TimeDestroyer.cs" t="Include" />
+            <e p="UIManager.cs" t="Include" />
+          </e>
           <e p="TargetController.cs" t="Include" />
+          <e p="Trains" t="Include">
+            <e p="TrainController.cs" t="Include" />
+            <e p="TrainManager.cs" t="Include" />
+          </e>
+          <e p="Utility.cs" t="Include" />
+        </e>
+        <e p="Standard Assets" t="Include">
+          <e p="CrossPlatformInput" t="Include">
+            <e p="CrossPlatformInputGuidelines.txt" t="Include" />
+            <e p="Scripts" t="Include">
+              <e p="AxisTouchButton.cs" t="Include" />
+              <e p="ButtonHandler.cs" t="Include" />
+              <e p="CrossPlatformInputManager.cs" t="Include" />
+              <e p="InputAxisScrollbar.cs" t="Include" />
+              <e p="Joystick.cs" t="Include" />
+              <e p="MobileControlRig.cs" t="Include" />
+              <e p="PlatformSpecific" t="Include">
+                <e p="MobileInput.cs" t="Include" />
+                <e p="StandaloneInput.cs" t="Include" />
+              </e>
+              <e p="TiltInput.cs" t="Include" />
+              <e p="TouchPad.cs" t="Include" />
+              <e p="VirtualInput.cs" t="Include" />
+            </e>
+          </e>
+          <e p="Editor" t="Include">
+            <e p="CrossPlatformInput" t="Include">
+              <e p="CrossPlatformInputInitialize.cs" t="Include" />
+            </e>
+          </e>
+          <e p="Vehicles" t="Include">
+            <e p="Aircraft" t="Include">
+              <e p="AircraftGuidelines.txt" t="Include" />
+              <e p="Scripts" t="Include">
+                <e p="AeroplaneAiControl.cs" t="Include" />
+                <e p="AeroplaneAudio.cs" t="Include" />
+                <e p="AeroplaneController.cs" t="Include" />
+                <e p="AeroplaneControlSurfaceAnimator.cs" t="Include" />
+                <e p="AeroplanePropellerAnimator.cs" t="Include" />
+                <e p="AeroplaneUserControl2Axis.cs" t="Include" />
+                <e p="AeroplaneUserControl4Axis.cs" t="Include" />
+                <e p="JetParticleEffect.cs" t="Include" />
+                <e p="LandingGear.cs" t="Include" />
+              </e>
+            </e>
+            <e p="Car" t="Include">
+              <e p="CarGuidelines.txt" t="Include" />
+              <e p="Scripts" t="Include">
+                <e p="BrakeLight.cs" t="Include" />
+                <e p="CarAIControl.cs" t="Include" />
+                <e p="CarAudio.cs" t="Include" />
+                <e p="CarController.cs" t="Include" />
+                <e p="CarSelfRighting.cs" t="Include" />
+                <e p="CarUserControl.cs" t="Include" />
+                <e p="Mudguard.cs" t="Include" />
+                <e p="SkidTrail.cs" t="Include" />
+                <e p="Suspension.cs" t="Include" />
+                <e p="WheelEffects.cs" t="Include" />
+              </e>
+              <e p="Shaders" t="Include">
+                <e p="DiffuseReflectiveShader.shader" t="Include" />
+                <e p="ReflectiveDiffuseSpec.shader" t="Include" />
+                <e p="ReflectiveDiffuseSpecTransp.shader" t="Include" />
+              </e>
+            </e>
+          </e>
         </e>
       </e>
       <e p="Honours Project.sln" t="IncludeFlat" />
