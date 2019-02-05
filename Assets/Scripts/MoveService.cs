@@ -7,7 +7,6 @@ using UnityEngine;
 
 public class MoveService : MonoBehaviour
 {
-
     private readonly DroneController _controller;
 
     public MoveService(DroneController controller)
@@ -29,7 +28,8 @@ public class MoveService : MonoBehaviour
 
         _controller.gameObject.GetComponent<NavMeshAgent>().enabled = true;
 
-        float vector3distanceToTarget = Vector3.Distance(_controller.Target.transform.position, _controller.transform.position);
+        float vector3distanceToTarget =
+            Vector3.Distance(_controller.Target.transform.position, _controller.transform.position);
 
         // If close to object, just set it to it.
         if (vector3distanceToTarget < 1.5)
@@ -39,7 +39,7 @@ public class MoveService : MonoBehaviour
                 _controller.AttachToTarget();
                 _controller.waitingAtTarget = true;
             }
-            
+
             if (_controller.isMovingToLandingBlock)
             {
                 _controller.waitingAtTarget = true;
@@ -50,16 +50,12 @@ public class MoveService : MonoBehaviour
             NavMeshAgent agent = _controller.GetComponent<NavMeshAgent>();
             agent.destination = _controller.Target.transform.position;
         }
-        
     }
-    
-    
 
     void moveTowardsTargetLevel(int targetLevel)
     {
         // If close to the y axis
-        if (Math.Abs(_controller.transform.position.y - Levels.levelsDict[targetLevel]) < 0.05 ||
-            _controller.transform.position.y > Levels.levelsDict[targetLevel])
+        if (Math.Abs(_controller.transform.position.y - Levels.levelsDict[targetLevel]) < 0.05)
         {
             _controller.level = targetLevel;
             Vector3 targetTransform = _controller.transform.position;

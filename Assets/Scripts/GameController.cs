@@ -51,8 +51,7 @@ public class GameController : MonoBehaviour
                 var firstLevelContainer = Instantiate(sampleContainer, temp, starting_transform.rotation);
                 var firstLevelContainerController = firstLevelContainer.GetComponent<ContainerController>();
                 
-                
-                firstLevelContainerController.LandingContainerController = shipController.firstLevelLandingBlocks[i]
+                firstLevelContainerController.LandingContainerController = shipController.firstLevelLandingContainers[i]
                     .GetComponent<LandingContainerController>();
                 firstLevelContainerController._ShipController = shipController;
                 firstLevelContainerController._containerModel = containerPlan.firstRow[i];
@@ -65,7 +64,7 @@ public class GameController : MonoBehaviour
                 var secondLevelContainer = Instantiate(sampleContainer, temp, starting_transform.rotation);
                 var secondLevelContainerController = secondLevelContainer.GetComponent<ContainerController>();
 
-                secondLevelContainerController.LandingContainerController = shipController.secondLevelLandingBlocks[i]
+                secondLevelContainerController.LandingContainerController = shipController.secondLevelLandingContainers[i]
                     .GetComponent<LandingContainerController>();
                 secondLevelContainerController._ShipController = shipController;
                 secondLevelContainerController._containerModel = containerPlan.secondRow[i];

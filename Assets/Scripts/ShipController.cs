@@ -3,20 +3,20 @@ using UnityEngine;
 
 public class ShipController : MonoBehaviour
 {
-    public List<GameObject> firstLevelLandingBlocks;
-    public List<GameObject> secondLevelLandingBlocks;
+    public List<GameObject> firstLevelLandingContainers;
+    public List<GameObject> secondLevelLandingContainers;
 
     public List<GameObject> containers;
 
-    public void RemoveLandingBlock(GameObject landingBlock)
+    public void RemoveLandingContainer(GameObject landingContainer)
     {
-        if (firstLevelLandingBlocks.Contains(landingBlock))
+        if (firstLevelLandingContainers.Contains(landingContainer))
         {
-            firstLevelLandingBlocks.Remove(landingBlock);
+            firstLevelLandingContainers.Remove(landingContainer);
         }
         else
         {
-            secondLevelLandingBlocks.Remove(landingBlock);
+            secondLevelLandingContainers.Remove(landingContainer);
         }
     }
 }

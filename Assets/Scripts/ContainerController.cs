@@ -61,7 +61,7 @@ public class ContainerController : MonoBehaviour
     
     void removeLandingBlockFromGameControllerList()
     {
-        _ShipController.RemoveLandingBlock(LandingContainerController.gameObject);
+        _ShipController.RemoveLandingContainer(LandingContainerController.gameObject);
     }
 
     void attachBlock()
@@ -72,15 +72,23 @@ public class ContainerController : MonoBehaviour
     void freeDrones()
     {
         _topLeftDrone.GetComponent<DroneController>().waitingAtTarget = false;
+        _topLeftDrone.GetComponent<DroneController>().isMovingToBuildingblock = false;
+        _topLeftDrone.GetComponent<DroneController>().isMovingToLandingBlock = false;
         _topLeftDrone.GetComponent<DroneController>().resetTarget();
         
         _topRightDrone.GetComponent<DroneController>().waitingAtTarget = false;
+        _topRightDrone.GetComponent<DroneController>().isMovingToBuildingblock = false;
+        _topRightDrone.GetComponent<DroneController>().isMovingToLandingBlock = false;
         _topRightDrone.GetComponent<DroneController>().resetTarget();
         
         _bottomLeftDrone.GetComponent<DroneController>().waitingAtTarget = false;
+        _bottomLeftDrone.GetComponent<DroneController>().isMovingToBuildingblock = false;
+        _bottomLeftDrone.GetComponent<DroneController>().isMovingToLandingBlock = false;
         _bottomLeftDrone.GetComponent<DroneController>().resetTarget();
         
         _bottomRightDrone.GetComponent<DroneController>().waitingAtTarget = false;
+        _bottomRightDrone.GetComponent<DroneController>().isMovingToBuildingblock = false;
+        _bottomRightDrone.GetComponent<DroneController>().isMovingToLandingBlock = false;
         _bottomRightDrone.GetComponent<DroneController>().resetTarget();
         
         _gameController.receiveFreeDrones(new List<GameObject>
