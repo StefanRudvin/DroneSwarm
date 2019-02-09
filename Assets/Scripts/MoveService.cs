@@ -18,7 +18,7 @@ public class MoveService : MonoBehaviour
     {
         var targetController = _controller.Target.GetComponent<TargetController>();
         var targetLevel = targetController.level;
-
+        
         if (targetLevel != _controller.level)
         {
             _controller.gameObject.GetComponent<NavMeshAgent>().enabled = false;
