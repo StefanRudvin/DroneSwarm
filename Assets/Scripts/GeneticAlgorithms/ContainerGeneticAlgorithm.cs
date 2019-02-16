@@ -14,6 +14,8 @@ public class ContainerGeneticAlgorithm
     private int _width;
     private readonly int _length;
 
+    private bool debug = false;
+
     private readonly List<ContainerModel> _containerModels;
 
     // List of current chromosomes
@@ -39,11 +41,11 @@ public class ContainerGeneticAlgorithm
     {
         CreateInitialPopulation();
 
-        Debug.Log(string.Format("Population count: {0}", _population.Count.ToString()));
+        if (debug) Debug.Log(string.Format("Population count: {0}", _population.Count.ToString()));
 
         EvolvePopulation();
         
-        return GetBestchromosome();
+        return GetBestChromosome();
     }
 
     private float GetChromosomeWeightDifference(List<List<ContainerModel>> chromosome)
@@ -99,7 +101,7 @@ public class ContainerGeneticAlgorithm
         }
     }
 
-    private ContainerPlan GetBestchromosome()
+    private ContainerPlan GetBestChromosome()
     {
         var bestChromosome = new List<List<ContainerModel>>();
         
@@ -111,7 +113,7 @@ public class ContainerGeneticAlgorithm
             break;
         }
         
-        Debug.Log(string.Format("Found best chromosome: {0}", bestChromosome));
+        if (debug) Debug.Log(string.Format("Found best chromosome: {0}", bestChromosome));
         
         return new ContainerPlan(bestChromosome);
     }
@@ -125,7 +127,7 @@ public class ContainerGeneticAlgorithm
         var newPopulation = new List<List<List<ContainerModel>>>();
         var random = new Random();
 
-        foreach (var chromoeomse in _population)
+        foreach (var chromosome in _population)
         {
             // Select two random chromosomes from mating pool
             var parentA = _matingPool[random.Next(0, _matingPool.Count)];
@@ -147,7 +149,7 @@ public class ContainerGeneticAlgorithm
 
         int randomPivot = random.Next(0, _length);
 
-        for (int i = 0; i < _length; i++)
+        for (var i = 0; i < _length; i++)
         {
             if (i < randomPivot)
             {
@@ -211,7 +213,7 @@ public class ContainerGeneticAlgorithm
                 _matingPool.Add(chromosome);
             }
         }
-        Debug.Log(string.Format("Average fitness for population: {0}",
+        if (debug) Debug.Log(string.Format("Average fitness for population: {0}",
             (fitnesses.Sum() / fitnesses.Count).ToString()));
     }
 

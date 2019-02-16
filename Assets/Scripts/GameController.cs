@@ -7,9 +7,9 @@ using Random = System.Random;
 
 public class GameController : MonoBehaviour
 {
-    public List<GameObject> availableDrones = new List<GameObject>();
+    public List<GameObject> _availableDrones = new List<GameObject>();
 
-    public List<GameObject> ships = new List<GameObject>();
+    public List<GameObject> _ships = new List<GameObject>();
 
     public GameObject startPad;
     public GameObject sampleDrone;
@@ -17,10 +17,15 @@ public class GameController : MonoBehaviour
     public GameObject sampleContainer;
     public GameObject containerLocationStart;
 
+    public DroneGeneticAlgorithm _droneGeneticAlgorithm;
+
     private void Start()
     {
+        _droneGeneticAlgorithm = new DroneGeneticAlgorithm();
         createContainersAndMapToShip();
         instantiateDrones();
+        _droneGeneticAlgorithm.AddDrones(_availableDrones);
+        RunGeneticAlgorithm();
     }
 
     /*
@@ -29,14 +34,14 @@ public class GameController : MonoBehaviour
      */
     private void createContainersAndMapToShip()
     {
-        foreach (var ship in ships)
+        foreach (var ship in _ships)
         {
             var containerModels = createRandomizedContainerModels();
 
             ContainerGeneticAlgorithm containerGeneticAlgorithm = new ContainerGeneticAlgorithm(containerModels, 2, 1, 10);
 
             ShipController shipController = ship.GetComponent<ShipController>();
-
+            
             // List of containers in the right order.
             ContainerPlan containerPlan = containerGeneticAlgorithm.CreateOptimalContainerPlan();
 
@@ -84,6 +89,10 @@ public class GameController : MonoBehaviour
                 shipController.containers.Add(firstLevelContainer);
                 shipController.containers.Add(secondLevelContainer);
             }
+            
+            _droneGeneticAlgorithm.AddFirstLevelContainers(shipController.firstLevelBuildingContainers);
+            _droneGeneticAlgorithm.AddSecondLevelContainers(shipController.secondLevelBuildingContainers);
+
         }
     }
 
@@ -111,7 +120,7 @@ public class GameController : MonoBehaviour
             var droneController = drone.GetComponent<DroneController>();
             droneController.Target = pad;
             droneController.startPosition = pad;
-            availableDrones.Add(drone);
+            _availableDrones.Add(drone);
         }
     }
 
@@ -172,9 +181,7 @@ public class GameController : MonoBehaviour
          * 
          */
         
-        DroneGeneticAlgorithm droneGeneticAlgorithm = new DroneGeneticAlgorithm();
-
-        droneGeneticAlgorithm.Run();
+        _droneGeneticAlgorithm.Run();
     }
 
     /*
@@ -183,7 +190,7 @@ public class GameController : MonoBehaviour
     void assignDronesToBuildingBlocks()
     {
         //RunGeneticAlgorithm();
-        foreach (var ship in ships)
+        foreach (var ship in _ships)
         {
             ShipController shipController = ship.GetComponent<ShipController>();
 
@@ -191,7 +198,7 @@ public class GameController : MonoBehaviour
             {
                 var containerController = buildingBlock.GetComponent<ContainerController>();
 
-                if (containerController._isTargeted || availableDrones.Count < containerController._requiredDrones) continue;
+                if (containerController._isTargeted || _availableDrones.Count < containerController._requiredDrones) continue;
 
                 Debug.Log("found a building block, assigning drones to it...");
 
@@ -203,14 +210,13 @@ public class GameController : MonoBehaviour
 
     private List<GameObject> getNAvailableDrones(ContainerController containerController)
     {
-        
         List<GameObject> extractedDrones = new List<GameObject>();
 
         for (var i = 0; i < containerController._requiredDrones; i++)
         {
-            GameObject drone = availableDrones[0];
+            GameObject drone = _availableDrones[0];
             extractedDrones.Add(drone);
-            availableDrones.Remove(drone);
+            _availableDrones.Remove(drone);
         }
 
         return extractedDrones;
@@ -218,6 +224,6 @@ public class GameController : MonoBehaviour
 
     public void receiveFreeDrones(List<GameObject> drones)
     {
-        foreach (var drone in new List<GameObject>(drones)) availableDrones.Add(drone);
+        foreach (var drone in new List<GameObject>(drones)) _availableDrones.Add(drone);
     }
 }

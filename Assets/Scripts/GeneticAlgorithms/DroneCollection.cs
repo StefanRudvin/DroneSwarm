@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class DroneCollection
 {
-    public List<Task> tasks;
+    public List<Task> _tasks;
     public Vector3 _currentLocation;
     public float _currentWeight;
     public List<GameObject> _drones;
@@ -12,5 +12,6 @@ public class DroneCollection
     {
         _drones = drones;
         _currentLocation = currentLocation;
+        _tasks = new List<Task>();
     }
 }
