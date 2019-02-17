@@ -8,11 +8,17 @@ public class Task
     public GameObject _gameObject;
     public Task _nextTask;
     public float _initialWeight;
-    public float _waitingTime;
-    
-    public bool isFirstLevel()
+    public float _waitingTime = 0f;
+    public int _index;
+
+    public bool isWaitingTask()
     {
-        return _nextTask != null;
+        return _waitingTime != 0f;
+    }
+    
+    public bool isUpperLevel()
+    {
+        return _nextTask == null;
     }
 
     public Task(float waitingTime)
@@ -20,11 +26,12 @@ public class Task
         _waitingTime = waitingTime;
     }
 
-    public Task(GameObject gameObject, Vector3 startLocation, Vector3 endLocation, float weight,
+    public Task(GameObject gameObject, Vector3 startLocation, Vector3 endLocation, float weight, int index,
         Task nextTask = null)
     {
         if (nextTask != null) _nextTask = nextTask;
 
+        _index = index;
         _gameObject = gameObject;
         _startLocation = startLocation;
         _endLocation = endLocation;

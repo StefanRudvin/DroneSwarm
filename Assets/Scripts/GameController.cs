@@ -25,6 +25,8 @@ public class GameController : MonoBehaviour
         createContainersAndMapToShip();
         instantiateDrones();
         _droneGeneticAlgorithm.AddDrones(_availableDrones);
+        
+        // TODO Map drones with tasks from Genetic Algorithm.
         RunGeneticAlgorithm();
     }
 
@@ -60,8 +62,8 @@ public class GameController : MonoBehaviour
                 Vector3 temp = starting_transform.position;
     			temp.z += i * 20;
                 
-                var firstLevelContainer = Instantiate(sampleContainer, temp, starting_transform.rotation);
-                var firstLevelContainerController = firstLevelContainer.GetComponent<ContainerController>();
+                GameObject firstLevelContainer = Instantiate(sampleContainer, temp, starting_transform.rotation);
+                ContainerController firstLevelContainerController = firstLevelContainer.GetComponent<ContainerController>();
                 
                 firstLevelContainerController.LandingContainerController = shipController.firstLevelLandingContainers[i]
                     .GetComponent<LandingContainerController>();
@@ -131,56 +133,6 @@ public class GameController : MonoBehaviour
 
     private void RunGeneticAlgorithm()
     {
-        /*
-         * Multi-Agent travelling salesman problem.
-         *
-         * We have n drones, or collections of 4 drones.
-         *
-         * We have n blocks with n destinations.
-         *
-         * Create a genetic algorithm for that?
-         *
-         * Idea:
-         * Generate 1 gene:
-         *
-         * Take a drone, give it a target, then another, then another. Fitness function is the total time from start to finish.
-         *
-         * Drone 1    Building-C 1    Landing-C 1
-         * Drone 2    Building-C 2    Landing-C 2
-         *            Building-C 3    Landing-C 3
-         *            Building-C 4    Landing-C 4
-         *            Building-C 5    Landing-C 5
-         *
-         * Create random permutations.
-         *
-         * Pick a random drone + a random destination. Rinse and repeat until no more destinations.
-         * In between that, program a way so that containers on the 2nd level aren't available until the first one is placed.
-         *
-         * Need a data structure to hold current.
-         *
-         * Tree Data structure? Keep leaves in an array or some shite like that.
-         *
-         * Graph Data Structure. Maybe keep a running count for each.
-         *
-         * System can also decide not to do anything for a time period.
-         *
-         * Once the bottom layer is reached, add the new graph node with a cost!
-         *
-         * Even better: Once the 'bottom' container takes off and is at the same distance from the landing as the 'top' container,
-         * free the top container with the current cost.
-         *
-         * Each drone keeps a running 'cost' to it.
-         *
-         * End 'fitness' is the largest 'cost' in each drone.
-         * 
-         * 
-         *
-         * 
-         * 
-         * 
-         * 
-         */
-        
         _droneGeneticAlgorithm.Run();
     }
 
