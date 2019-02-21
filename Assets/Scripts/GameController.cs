@@ -94,7 +94,6 @@ public class GameController : MonoBehaviour
             
             _droneGeneticAlgorithm.AddFirstLevelContainers(shipController.firstLevelBuildingContainers);
             _droneGeneticAlgorithm.AddSecondLevelContainers(shipController.secondLevelBuildingContainers);
-
         }
     }
 
@@ -133,6 +132,10 @@ public class GameController : MonoBehaviour
 
     private void RunGeneticAlgorithm()
     {
+        /*
+         * Remove active drones and placed containers here, and pass them to the algorithm each time it needs to be run.
+         * 
+         */
         _droneGeneticAlgorithm.Run();
     }
 

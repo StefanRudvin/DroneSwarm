@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using UnityEngine;
 using Random = System.Random;
 
@@ -17,12 +18,12 @@ public class DroneGeneticAlgorithm
     private List<Chromosome> _matingPool;
 
     private const int PopulationSize = 100;
-    private const int GenerationCount = 10;
+    private const int GenerationCount = 100;
 
     private float _fittestChromosomeWeight = 1000000000;
     private Chromosome _fittestChromosome;
 
-    private List<GameObject> _firstLevelContainers;
+    private List<GameObject> _containers;
     private List<GameObject> _secondLevelContainers;
 
     private List<GameObject> _droneGameObjects;
@@ -34,7 +35,7 @@ public class DroneGeneticAlgorithm
         _matingPool = new List<Chromosome>();
         _population = new List<Chromosome>();
 
-        _firstLevelContainers = new List<GameObject>();
+        _containers = new List<GameObject>();
         _secondLevelContainers = new List<GameObject>();
     }
 
@@ -76,11 +77,11 @@ public class DroneGeneticAlgorithm
 
             Mutation();
 
-            ProcessPopulation();
+            if (ProcessPopulation()) break;
         }
     }
 
-    private void ProcessPopulation()
+    private bool ProcessPopulation()
     {
         float minWeight = 9999f;
         float maxWeight = 0;
@@ -92,29 +93,46 @@ public class DroneGeneticAlgorithm
             maxWeight = Math.Max(maxWeight, chromosome._weight);
         }
 
+        List<float> fitnesses = new List<float>();
+
         foreach (Chromosome chromosome in _population)
         {
-            //float normalizedDifference = (difference - minWeightDifference) / (maxWeightDifference - minWeightDifference);
-            //return (1 - normalizedDifference) * 100;
-
             /*
              * Weight should be as low as possible.
              *
              * 1 - normalized * 100 should be creeping up to 100.
-             * 
              */
+            float fitness;
 
-            float normalized = (chromosome._weight - minWeight) / (maxWeight - minWeight);
+            if (minWeight == maxWeight && chromosome._weight == minWeight)
+            {
+                fitness = 100;
+            }
+            else
+            {
+                float normalized = (chromosome._weight - minWeight) / (maxWeight - minWeight);
 
-            float fitness = (1 - normalized) * 100;
+                fitness = (1 - normalized) * 100;
+            }
 
             chromosome._fitness = fitness;
+            fitnesses.Add(fitness);
 
-            if (chromosome._weight > _fittestChromosomeWeight) continue;
+            if (chromosome._weight < _fittestChromosomeWeight) continue;
 
+            // We have a new fittest chromosome.
             _fittestChromosome = chromosome;
             _fittestChromosomeWeight = chromosome._weight;
+
+            Debug.Log(string.Format("New FittestChromosome found with weight {0} and fitness {1}",
+                _fittestChromosomeWeight.ToString(), _fittestChromosome._fitness.ToString()));
         }
+
+        float averageFitness = fitnesses.Sum() / fitnesses.Count;
+
+        Debug.Log(string.Format("Average fitness for population: {0}", averageFitness.ToString()));
+
+        return averageFitness == 100f;
     }
 
     /*
@@ -123,81 +141,22 @@ public class DroneGeneticAlgorithm
      * This is done after initial population is created, AND after doing natural selection
      *
      * Chromosome already has the order at which tasks are completed. We just need to
-     * add wait tasks and adjust initial weights accordingly.
+     * adjust initial weights accordingly.
      */
     private void ProcessChromosome(Chromosome chromosome)
     {
         /*
-         * Approach 1: Loop through all DroneCollections and tasks.
-         * If a lower level task is found, add the upper level to the 'available' list.
-         * If an upper level is found and is in the 'available' list, add the waiting time before it.
-         * Keep a count of available lists.
+         *    Just go through all tasks of a drone and add the weights of each one.
+         *    No need to do any waiting.
          */
-
-        List<Task> placedTasks = new List<Task>();
-
-        List<Task> availableTasks = new List<Task>();
-        List<float> availableTaskWeights = new List<float>();
-
-        /**
-         *
-         * Problem: Not all tasks are placed in 'availableTasks'
-         *
-         * Something wrong with _task._nextTask?
-         */
-
-        while (placedTasks.Count < _firstLevelContainers.Count + _secondLevelContainers.Count)
+        foreach (DroneCollection droneCollection in chromosome._droneCollection)
         {
-            foreach (DroneCollection droneCollection in chromosome._droneCollection)
+            droneCollection.Reset();
+            foreach (var task in droneCollection._tasks)
             {
-                for (int index = 0; index < droneCollection._tasks.Count; index++)
-                {
-                    Task task = droneCollection._tasks[index];
+                SetDroneToTask(droneCollection, task);
 
-                    if (placedTasks.Contains(task)) continue;
-
-                    if (task.isUpperLevel())
-                    {
-                        bool cont = false;
-                        foreach (Task availableTask in availableTasks)
-                        {
-                            if (availableTask._startLocation == task._startLocation &&
-                                availableTask._endLocation == task._endLocation)
-                            {
-                                cont = true;
-                            }
-                        }
-
-                        if (!cont) continue;
-
-                        int taskIndex = availableTasks.FindIndex(availableTask =>
-                            availableTask._startLocation == task._startLocation &&
-                            availableTask._endLocation == task._endLocation);
-
-                        // TODO : _initialweight may be carried over from previous calculation.
-
-                        float timeToWait = availableTaskWeights[taskIndex] - droneCollection._currentWeight;
-
-                        if (timeToWait > 0)
-                        {
-                            Debug.Log("Adding waiting task boii");
-                            Task waitingTask = new Task(timeToWait);
-                            placedTasks.Add(waitingTask);
-                            droneCollection._tasks.Insert(index, waitingTask);
-                            droneCollection._currentWeight += timeToWait;
-                        }
-                    }
-                    else
-                    {
-                        availableTasks.Add(task._nextTask);
-                        availableTaskWeights.Add(task._initialWeight);
-                    }
-
-                    SetDroneToTask(droneCollection, task);
-                    placedTasks.Add(task);
-
-                    chromosome._weight = Math.Max(chromosome._weight, droneCollection._currentWeight);
-                }
+                chromosome._weight = Math.Max(chromosome._weight, droneCollection._currentWeight);
             }
         }
     }
@@ -215,9 +174,7 @@ public class DroneGeneticAlgorithm
 
         // Add task distance to drone
         weight += task._weight;
-
         droneCollection._currentLocation = task._endLocation;
-
         droneCollection._currentWeight = weight;
     }
 
@@ -228,10 +185,9 @@ public class DroneGeneticAlgorithm
         // Make this a collection instead.
         for (int i = 0; i < _droneGameObjects.Count; i += 4)
         {
-            // Get location from first drone.
             chromosome._droneCollection.Add(new DroneCollection(
                 _droneGameObjects[i].transform.position,
-                _droneGameObjects.GetRange(i, Math.Min(4, _droneGameObjects.Count - i))
+                _droneGameObjects.GetRange(i, 4)
             ));
         }
 
@@ -241,28 +197,25 @@ public class DroneGeneticAlgorithm
     private Chromosome GenerateRandomChromosome()
     {
         Random random = new Random();
-
         Chromosome chromosome = CreateEmptyChromosome();
         Tasker currentTasker = GetTasker();
 
-        for (int j = 0; j < _firstLevelContainers.Count + _secondLevelContainers.Count; j++)
+        for (int j = 0; j < _containers.Count; j++)
         {
             int droneIntToPick = random.Next(0, chromosome._droneCollection.Count);
             DroneCollection droneCollection = chromosome._droneCollection[droneIntToPick];
 
             int taskIntToPick = random.Next(0, currentTasker._tasks.Count);
             Task currentTask = currentTasker._tasks[taskIntToPick];
-
             droneCollection._tasks.Add(currentTask);
-            droneCollection._currentLocation = currentTask._endLocation;
+            // droneCollection._currentLocation = currentTask._endLocation;
 
-            // Add next task i.e. 2nd layer of containers.
-            if (currentTask._nextTask != null)
-            {
-                Task nextTask = currentTask._nextTask;
-                currentTasker._tasks.Add(nextTask);
-            }
-
+//            // Add next task i.e. 2nd layer of containers.
+//            if (currentTask._nextTask != null)
+//            {
+//                Task nextTask = currentTask._nextTask;
+//                currentTasker._tasks.Add(nextTask);
+//            }
             currentTasker._tasks.RemoveAt(taskIntToPick);
         }
 
@@ -271,14 +224,11 @@ public class DroneGeneticAlgorithm
 
     private Task CreateTaskAtIndex(int index)
     {
-        GameObject container = _firstLevelContainers[index];
+        GameObject container = _containers[index];
         ContainerController containerController = container.GetComponent<ContainerController>();
-
         GameObject nextContainer = _secondLevelContainers[index];
         ContainerController nextContainerController = nextContainer.GetComponent<ContainerController>();
-
         taskIndex += 1;
-
         Task nextTask = new Task(
             nextContainer,
             nextContainer.transform.position,
@@ -288,8 +238,6 @@ public class DroneGeneticAlgorithm
                 nextContainerController.LandingContainerController.transform.position
             ),
             taskIndex);
-
-        taskIndex += 1;
 
         return new Task(
             container,
@@ -307,8 +255,7 @@ public class DroneGeneticAlgorithm
     {
         Tasker tasker = new Tasker();
         taskIndex = 0;
-
-        for (int i = 0; i < _firstLevelContainers.Count; i++)
+        for (int i = 0; i < _containers.Count; i++)
         {
             tasker.addTask(CreateTaskAtIndex(i));
         }
@@ -329,8 +276,7 @@ public class DroneGeneticAlgorithm
     {
         List<Chromosome> newPopulation = new List<Chromosome>();
         Random random = new Random();
-
-        foreach (Chromosome unused in _population)
+        foreach (Chromosome chromosome in _population)
         {
             // Select two random chromosome from mating pool
             Chromosome parentA = _matingPool[random.Next(0, _matingPool.Count - 1)];
@@ -351,28 +297,22 @@ public class DroneGeneticAlgorithm
 
         foreach (DroneCollection droneCollection in chromosomeA._droneCollection)
         {
-            List<Task> tasks = droneCollection._tasks.Where(task => !task.isWaitingTask()).ToList();
-            lineupA.AddRange(tasks);
+            lineupA.AddRange(droneCollection._tasks);
         }
 
         foreach (DroneCollection droneCollection in chromosomeB._droneCollection)
         {
-            List<Task> tasks = droneCollection._tasks.Where(task => !task.isWaitingTask()).ToList();
-            lineupB.AddRange(tasks);
+            lineupB.AddRange(droneCollection._tasks);
         }
 
         Random random = new Random();
 
         // CROSSOVER BABY
-
         int sectionStart = random.Next(0, lineupA.Count);
         int sectionEnd = random.Next(sectionStart, lineupA.Count);
-
         List<Task> section = lineupA.GetRange(sectionStart, sectionEnd - sectionStart);
-
         List<Task> newLineUp = new List<Task>();
         int currentInt = 0;
-
 
         // XO crossover algorithm.
         for (int i = 0; i < lineupA.Count; i++)
@@ -387,6 +327,7 @@ public class DroneGeneticAlgorithm
                 {
                     // TODO Refactor the following..
                     bool found = false;
+                    // Check if item is in section.
                     foreach (var item in section)
                     {
                         if (item._index == lineupB[currentInt]._index)
@@ -410,61 +351,31 @@ public class DroneGeneticAlgorithm
         // Map new lineup to drones.
         int tasksPerDroneCollection = newLineUp.Count / (_droneGameObjects.Count / 4);
         int runningCount = 0;
-
         foreach (var droneCollection in chromosomeA._droneCollection)
         {
             droneCollection._tasks.Clear();
             droneCollection._tasks = newLineUp.GetRange(runningCount, tasksPerDroneCollection);
             runningCount += tasksPerDroneCollection;
         }
-        
-        chromosomeA = ReOrderTasks(chromosomeA);
 
         return chromosomeA;
-    }
-
-    private Chromosome ReOrderTasks(Chromosome chromosome)
-    {
-        // TODO Unfuck this situation up: Make a change where the lower always gets set before the higher. Order them so.
-        
-        /*
-         * Reorder tasks so that the 1st layer comes before the 2nd layer.
-         *
-         * 
-         * 
-         */
-        
-        
-        return chromosome;
     }
 
     private void CreateMatingPool()
     {
         _matingPool.Clear();
-
-        List<float> fitnesses = new List<float>();
-        // Add chromosomes to mating pool according to their fitness
         foreach (Chromosome chromosome in _population)
         {
-            float fitness = chromosome._fitness;
-            fitnesses.Add(fitness);
-
-            for (int k = 0; k < fitness; k++)
+            for (int k = 0; k < chromosome._fitness; k++)
             {
                 _matingPool.Add(chromosome);
             }
         }
-
-        Debug.Log(string.Format("Average fitness for population: {0}",
-            (fitnesses.Sum() / fitnesses.Count).ToString()));
-
-        Debug.Log(string.Format("FittestChromosomeweight: {0}",
-            _fittestChromosomeWeight.ToString()));
     }
 
     public void AddFirstLevelContainers(List<GameObject> containers)
     {
-        _firstLevelContainers.AddRange(containers);
+        _containers.AddRange(containers);
     }
 
     public void AddSecondLevelContainers(List<GameObject> containers)

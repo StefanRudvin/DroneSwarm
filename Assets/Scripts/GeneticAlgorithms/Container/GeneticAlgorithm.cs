@@ -87,11 +87,7 @@ public class ContainerGeneticAlgorithm
         {
             SetMaxMinWeightDifference();
 
-            if (maxWeightDifference == minWeightDifference)
-            {
-                // Optimized as well as it can.
-                break;
-            }
+            if (maxWeightDifference == minWeightDifference) break;
 
             CreateMatingPool();
 
