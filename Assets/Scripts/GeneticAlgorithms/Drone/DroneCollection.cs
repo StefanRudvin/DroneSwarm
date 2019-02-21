@@ -6,7 +6,7 @@ public class DroneCollection
     public List<Task> _tasks;
     public Vector3 _currentLocation;
     public float _currentWeight;
-    private List<GameObject> _drones;
+    public List<GameObject> _drones;
     private Vector3 _startLocation;
 
     public DroneCollection(Vector3 currentLocation, List<GameObject> drones)

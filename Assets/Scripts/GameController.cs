@@ -19,6 +19,10 @@ public class GameController : MonoBehaviour
 
     public DroneGeneticAlgorithm _droneGeneticAlgorithm;
 
+    private Chromosome _dronePlan;
+
+    private TaskManager _taskManager;
+
     private void Start()
     {
         _droneGeneticAlgorithm = new DroneGeneticAlgorithm();
@@ -26,8 +30,9 @@ public class GameController : MonoBehaviour
         instantiateDrones();
         _droneGeneticAlgorithm.AddDrones(_availableDrones);
         
-        // TODO Map drones with tasks from Genetic Algorithm.
-        RunGeneticAlgorithm();
+        _dronePlan = RunGeneticAlgorithm();
+        
+        _taskManager = new TaskManager(_dronePlan);
     }
 
     /*
@@ -127,58 +132,11 @@ public class GameController : MonoBehaviour
 
     private void Update()
     {
-        assignDronesToBuildingBlocks();
+        _taskManager.Run();
     }
 
-    private void RunGeneticAlgorithm()
+    private Chromosome RunGeneticAlgorithm()
     {
-        /*
-         * Remove active drones and placed containers here, and pass them to the algorithm each time it needs to be run.
-         * 
-         */
-        _droneGeneticAlgorithm.Run();
-    }
-
-    /*
-     * Find free building blocks and assign free drones to them.
-     */
-    void assignDronesToBuildingBlocks()
-    {
-        //RunGeneticAlgorithm();
-        foreach (var ship in _ships)
-        {
-            ShipController shipController = ship.GetComponent<ShipController>();
-
-            foreach (var buildingBlock in shipController.getOpenLandingContainers())
-            {
-                var containerController = buildingBlock.GetComponent<ContainerController>();
-
-                if (containerController._isTargeted || _availableDrones.Count < containerController._requiredDrones) continue;
-
-                Debug.Log("found a building block, assigning drones to it...");
-
-                List<GameObject> extractedDrones = getNAvailableDrones(containerController);
-                containerController.assignDronesToContainer(extractedDrones);
-            }
-        }
-    }
-
-    private List<GameObject> getNAvailableDrones(ContainerController containerController)
-    {
-        List<GameObject> extractedDrones = new List<GameObject>();
-
-        for (var i = 0; i < containerController._requiredDrones; i++)
-        {
-            GameObject drone = _availableDrones[0];
-            extractedDrones.Add(drone);
-            _availableDrones.Remove(drone);
-        }
-
-        return extractedDrones;
-    }
-
-    public void receiveFreeDrones(List<GameObject> drones)
-    {
-        foreach (var drone in new List<GameObject>(drones)) _availableDrones.Add(drone);
+        return _droneGeneticAlgorithm.Run();
     }
 }

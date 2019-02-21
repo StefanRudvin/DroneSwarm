@@ -49,6 +49,7 @@ public class DroneGeneticAlgorithm
         CreateInitialPopulation();
         ProcessPopulation();
         EvolvePopulation();
+        Debug.Log(String.Format(" - - - - - - - - -- - - - - Droneplan : {0}", GetBestChromosome().ToString()));
         return GetBestChromosome();
     }
 
@@ -118,7 +119,7 @@ public class DroneGeneticAlgorithm
             chromosome._fitness = fitness;
             fitnesses.Add(fitness);
 
-            if (chromosome._weight < _fittestChromosomeWeight) continue;
+            if (chromosome._weight > _fittestChromosomeWeight) continue;
 
             // We have a new fittest chromosome.
             _fittestChromosome = chromosome;

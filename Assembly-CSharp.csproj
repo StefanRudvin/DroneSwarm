@@ -84,6 +84,7 @@
     <Compile Include="Assets\Scripts\System\TimeDestroyer.cs" />
     <Compile Include="Assets\Scripts\System\UIManager.cs" />
     <Compile Include="Assets\Scripts\TargetController.cs" />
+    <Compile Include="Assets\Scripts\TaskManager.cs" />
     <Compile Include="Assets\Scripts\Trains\CitizenController.cs" />
     <Compile Include="Assets\Scripts\Trains\PlatformWarning.cs" />
     <Compile Include="Assets\Scripts\Trains\TrainController.cs" />

@@ -18,7 +18,7 @@ public class MoveService : MonoBehaviour
     {
         var targetController = _controller.Target.GetComponent<TargetController>();
         var targetLevel = targetController.level;
-        
+
         if (targetLevel != _controller.level)
         {
             _controller.gameObject.GetComponent<NavMeshAgent>().enabled = false;
@@ -34,16 +34,8 @@ public class MoveService : MonoBehaviour
         // If close to object, just set it to it.
         if (vector3distanceToTarget < 1.5)
         {
-            if (_controller.isMovingToBuildingblock)
-            {
-                _controller.AttachToTarget();
-                _controller.waitingAtTarget = true;
-            }
-
-            if (_controller.isMovingToLandingBlock)
-            {
-                _controller.waitingAtTarget = true;
-            }
+            _controller.waitingAtTarget = true;
+            if (_controller.isMovingToBuildingblock) _controller.AttachToTarget();
         }
         else
         {

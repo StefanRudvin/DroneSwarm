@@ -28,6 +28,8 @@ public class DroneController : MonoBehaviour
     
     public Rigidbody _rigidbody;
 
+    public List<Task> tasks;
+
     private void Start()
     {
         _rigidbody = GetComponent<Rigidbody> ();
@@ -48,7 +50,7 @@ public class DroneController : MonoBehaviour
         }
     }
 
-    public void resetTarget()
+    public void ResetTarget()
     {
         Target = startPosition;
     }
