@@ -7,6 +7,7 @@ public class ContainerController : MonoBehaviour
     public int _requiredDrones = 4;
     public bool _isTargeted = false;
     public bool _isMovingToLandingBlock = false;
+    public bool _isCompleted = false;
 
     public GameObject _topLeftTarget;
     public GameObject _topRightTarget;
@@ -20,11 +21,12 @@ public class ContainerController : MonoBehaviour
 
     public ContainerModel _containerModel;
 
+    public GameObject _nextContainer;
+    
     private Task _task;
 
     public LandingContainerController LandingContainerController;
     public ShipController _ShipController;
-
 
     void Update()
     {
@@ -38,11 +40,14 @@ public class ContainerController : MonoBehaviour
         }
         else
         {
-            freeDrones();
+            _isCompleted = true;
             removeBuildingBlockFromShipController();
-            attachBlock();
+            placeLandingContainer();
+            freeDrones();
+            _isCompleted = true;
             gameObject.SetActive(false);
-            //Destroy(gameObject);
+            _task.isCompleted = true;  
+//            Destroy(gameObject);
 //            GameObject ChildGameObject2 = transform.GetChild(0).gameObject;
 //            ChildGameObject2.GetComponent<Renderer>().material.color = Color.white;
 //            ChildGameObject2.GetComponent<Renderer>().material.color = Utility.createColorFromWeight(_containerModel._weight);
@@ -52,12 +57,11 @@ public class ContainerController : MonoBehaviour
     void removeBuildingBlockFromShipController()
     {
         _ShipController.containers.Remove(gameObject);
-        _ShipController.RemoveLandingContainer(LandingContainerController.gameObject);
     }
 
-    void attachBlock()
+    void placeLandingContainer()
     {
-        LandingContainerController.attachBlock(_containerModel);
+        LandingContainerController.placeLandingContainer(_containerModel);
     }
 
     void freeDrones()
@@ -81,8 +85,6 @@ public class ContainerController : MonoBehaviour
         _bottomRightDrone.GetComponent<DroneController>().isMovingToBuildingblock = false;
         _bottomRightDrone.GetComponent<DroneController>().isMovingToLandingBlock = false;
         _bottomRightDrone.GetComponent<DroneController>().ResetTarget();
-
-        _task.isCompleted = true;
     }
 
     bool areDronesWaitingAtTarget()
@@ -95,6 +97,7 @@ public class ContainerController : MonoBehaviour
 
     public void assignDronesToContainer(List<GameObject> drones, Task task)
     {
+        _isTargeted = true;
         _task = task;
         
         _topLeftDrone = drones[0];
@@ -114,7 +117,7 @@ public class ContainerController : MonoBehaviour
         _bottomLeftDrone.GetComponent<DroneController>().isMovingToBuildingblock = true;
 
         // Target only at end so that drones are present
-        _isTargeted = true;
+        
     }
     
     public void makeTargetsKinematic()

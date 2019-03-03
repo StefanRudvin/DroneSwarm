@@ -7,10 +7,13 @@ public class DroneCollection
     public Vector3 _currentLocation;
     public float _currentWeight;
     public List<GameObject> _drones;
-    private Vector3 _startLocation;
+    public Vector3 _startLocation;
 
-    public DroneCollection(Vector3 currentLocation, List<GameObject> drones)
+    public Task _currentTask = null;
+    
+    public DroneCollection(Vector3 currentLocation, List<GameObject> drones, Task currentTask)
     {
+        _currentTask = currentTask;
         _currentLocation = currentLocation;
         _drones = drones;
         _tasks = new List<Task>();

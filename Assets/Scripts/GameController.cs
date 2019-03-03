@@ -21,18 +21,22 @@ public class GameController : MonoBehaviour
 
     private Chromosome _dronePlan;
 
-    private TaskManager _taskManager;
+    public List<DroneCollection> _droneCollections = new List<DroneCollection>();
+
+    public TaskManager _taskManager;
 
     private void Start()
     {
         _droneGeneticAlgorithm = new DroneGeneticAlgorithm();
         createContainersAndMapToShip();
-        instantiateDrones();
-        _droneGeneticAlgorithm.AddDrones(_availableDrones);
+        instantiateDroneCollections();
         
-        _dronePlan = RunGeneticAlgorithm();
+        _droneGeneticAlgorithm.SetDroneCollections(_droneCollections);
+        
+        RunGeneticAlgorithm();
         
         _taskManager = new TaskManager(_dronePlan);
+        _taskManager._containers = _droneGeneticAlgorithm._containers;
     }
 
     /*
@@ -90,15 +94,15 @@ public class GameController : MonoBehaviour
                 
 //                GameObject  ChildGameObject2 = secondLevelContainer.transform.GetChild (0).gameObject;
 //                ChildGameObject2.GetComponent<Renderer>().material.color = Utility.createColorFromWeight(secondLevelContainerController._containerModel._weight);
-//                
+//              
+                firstLevelContainerController._nextContainer = secondLevelContainer;
+                
                 shipController.firstLevelBuildingContainers.Add(firstLevelContainer);
                 shipController.secondLevelBuildingContainers.Add(secondLevelContainer);
                 shipController.containers.Add(firstLevelContainer);
                 shipController.containers.Add(secondLevelContainer);
             }
-            
-            _droneGeneticAlgorithm.AddFirstLevelContainers(shipController.firstLevelBuildingContainers);
-            _droneGeneticAlgorithm.AddSecondLevelContainers(shipController.secondLevelBuildingContainers);
+            _droneGeneticAlgorithm.AddContainers(shipController.firstLevelBuildingContainers);
         }
     }
 
@@ -115,7 +119,7 @@ public class GameController : MonoBehaviour
         return containerModels;
     }
 
-    void instantiateDrones()
+    void instantiateDroneCollections()
     {
         var startPads = startPad.GetComponent<StartPadController>().startPads;
     
@@ -128,15 +132,34 @@ public class GameController : MonoBehaviour
             droneController.startPosition = pad;
             _availableDrones.Add(drone);
         }
+        
+        // Make this a collection instead.
+        for (int i = 0; i < _availableDrones.Count; i += 4)
+        {
+            _droneCollections.Add(new DroneCollection(
+                _availableDrones[i].transform.position,
+                _availableDrones.GetRange(i, 4),
+                null
+            ));
+        }
     }
 
     private void Update()
     {
-        _taskManager.Run();
+        // Return the list of new tasks from here.
+        _taskManager._containers = _droneGeneticAlgorithm._containers;
+        if (_taskManager.Run())
+        {
+            _droneGeneticAlgorithm.SetContainers(_taskManager._containers);
+            _droneGeneticAlgorithm.SetDroneCollections(_taskManager._chromosome._droneCollection);
+            RunGeneticAlgorithm();
+            _droneCollections = _dronePlan._droneCollection;
+            _taskManager.setChromosome(_dronePlan);
+        }
     }
 
-    private Chromosome RunGeneticAlgorithm()
+    private void RunGeneticAlgorithm()
     {
-        return _droneGeneticAlgorithm.Run();
+        _dronePlan = _droneGeneticAlgorithm.Run(); 
     }
 }

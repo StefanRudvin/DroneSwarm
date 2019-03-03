@@ -7,9 +7,15 @@ using Random = System.Random;
 
 public class TaskManager
 {
-    private readonly Chromosome _chromosome;
+    public Chromosome _chromosome;
+    public List<GameObject> _containers = new List<GameObject>();
 
     public TaskManager(Chromosome chromosome)
+    {
+        _chromosome = chromosome;
+    }
+
+    public void setChromosome(Chromosome chromosome)
     {
         _chromosome = chromosome;
     }
@@ -23,35 +29,57 @@ public class TaskManager
         }
     }
 
-    public void Run()
+    public bool Run()
     {
         /*
          * Check if task is completed by drones.
          * Attach drones to container for task.
          */
-
+        bool check = false;
         foreach (var droneCollection in _chromosome._droneCollection)
         {
             if (droneCollection._tasks.Count == 0)
             {
-                ResetDrones(droneCollection._drones);
-                break;
-            }
-            Task currentTask = droneCollection._tasks.First();
-            
-            if (currentTask.isCompleted)
-            {
-                droneCollection._tasks.Remove(currentTask);
-                // This could/should look for the next task, but we can just wait for the next game tick instead.
+                //ResetDrones(droneCollection._drones);
                 continue;
             }
+
+            // Drone is currently on a mission
+            if (droneCollection._currentTask != null && droneCollection._currentTask.isCompleted)
+            {
+                check = true;
+                Task currentTask = droneCollection._currentTask;
+                // Add second layer task to the mix.
+                if (currentTask._nextTask != null)
+                {
+                    _containers.Add(currentTask._nextTask._containerObject);
+                }
+                currentTask._containerObject.GetComponent<ContainerController>()._isCompleted = true;
+                _containers.Remove(currentTask._containerObject);
+                
+                droneCollection._currentTask = null;
+                // This could/should look for the next task, but we can just wait for the next game tick instead.
+            }
+
+            if (droneCollection._currentTask != null) continue;
             
-            if (currentTask.isUnderWay) continue;
+            Task nextTask = droneCollection._tasks.First();
+
+            if (!nextTask._containerObject.gameObject.activeInHierarchy)
+            {
+                Debug.Log("Mitä saatanan vittua");
+            }
             
             // Assign drones to task.
-            var containerController = currentTask._ContainerObject.GetComponent<ContainerController>();
-            containerController.assignDronesToContainer(droneCollection._drones, currentTask);
-            currentTask.isUnderWay = true;
+            var containerController = nextTask._containerObject.GetComponent<ContainerController>();
+            containerController.assignDronesToContainer(droneCollection._drones, nextTask);
+            containerController._isTargeted = true;            
+
+            droneCollection._currentTask = nextTask;
+            droneCollection._tasks.Remove(nextTask);
+            _containers.Remove(nextTask._containerObject);
         }
+
+        return check;
     }
 }

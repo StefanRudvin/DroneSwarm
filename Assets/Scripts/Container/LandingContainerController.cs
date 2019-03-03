@@ -14,7 +14,7 @@ public class LandingContainerController : MonoBehaviour
 
     public bool isTargeted = false;
     
-    public void attachBlock(ContainerModel containerModel)
+    public void placeLandingContainer(ContainerModel containerModel)
     {
         var pos = transform.position;
         Quaternion rotation= transform.rotation;
