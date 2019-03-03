@@ -55,7 +55,7 @@ public class DroneGeneticAlgorithm
             droneCollection._tasks.Clear();
         }
     }
-    
+
     public Chromosome Run()
     {
         Reset();
@@ -66,6 +66,7 @@ public class DroneGeneticAlgorithm
             Debug.Log("done!");
             return null;
         }
+
         CreateInitialPopulation();
 
         ProcessPopulation();
@@ -243,7 +244,7 @@ public class DroneGeneticAlgorithm
 
         if (lineupA.Count != lineupB.Count || lineupA.Count == 0)
         {
-            Debug.Log("We got empties boss!");
+            Debug.Log("Chromosome counts don't match up!");
         }
 
         Random random = new Random();
@@ -268,7 +269,7 @@ public class DroneGeneticAlgorithm
                 {
                     // TODO Refactor the following..
                     bool found = false;
-                    
+
                     foreach (var item in section)
                     {
                         if (item._index == lineupB[currentInt]._index)
@@ -292,11 +293,29 @@ public class DroneGeneticAlgorithm
         // Map new lineup to drones.
         int tasksPerDroneCollection = newLineUp.Count / newChromosome._droneCollection.Count;
         int runningCount = 0;
-        foreach (var droneCollection in newChromosome._droneCollection)
+
+        if (tasksPerDroneCollection < 1)
         {
-            droneCollection._tasks.Clear();
-            droneCollection._tasks = newLineUp.GetRange(runningCount, tasksPerDroneCollection);
-            runningCount += tasksPerDroneCollection;
+            foreach (var droneCollection in newChromosome._droneCollection)
+            {
+                droneCollection._tasks.Clear();
+            }
+
+            foreach (var droneCollection in newChromosome._droneCollection)
+            {
+                if (runningCount == newLineUp.Count) break;
+                droneCollection._tasks = newLineUp.GetRange(runningCount, 1);
+                runningCount += 1;
+            }
+        }
+        else
+        {
+            foreach (var droneCollection in newChromosome._droneCollection)
+            {
+                droneCollection._tasks.Clear();
+                droneCollection._tasks = newLineUp.GetRange(runningCount, tasksPerDroneCollection);
+                runningCount += tasksPerDroneCollection;
+            }
         }
 
         return newChromosome;

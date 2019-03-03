@@ -20,34 +20,24 @@ public class TaskManager
         _chromosome = chromosome;
     }
 
-    public void ResetDrones(List<GameObject> drones)
-    {
-        foreach (var drone in drones)
-        {
-            DroneController droneController = drone.GetComponent<DroneController>();
-            droneController.ResetTarget();
-        }
-    }
-
     public bool Run()
     {
         /*
          * Check if task is completed by drones.
          * Attach drones to container for task.
          */
-        bool check = false;
+        bool areNewContainersAdded = false;
         foreach (var droneCollection in _chromosome._droneCollection)
         {
             if (droneCollection._tasks.Count == 0)
             {
-                //ResetDrones(droneCollection._drones);
                 continue;
             }
 
             // Drone is currently on a mission
             if (droneCollection._currentTask != null && droneCollection._currentTask.isCompleted)
             {
-                check = true;
+                areNewContainersAdded = true;
                 Task currentTask = droneCollection._currentTask;
                 // Add second layer task to the mix.
                 if (currentTask._nextTask != null)
@@ -65,11 +55,6 @@ public class TaskManager
             
             Task nextTask = droneCollection._tasks.First();
 
-            if (!nextTask._containerObject.gameObject.activeInHierarchy)
-            {
-                Debug.Log("Mitä saatanan vittua");
-            }
-            
             // Assign drones to task.
             var containerController = nextTask._containerObject.GetComponent<ContainerController>();
             containerController.assignDronesToContainer(droneCollection._drones, nextTask);
@@ -79,7 +64,6 @@ public class TaskManager
             droneCollection._tasks.Remove(nextTask);
             _containers.Remove(nextTask._containerObject);
         }
-
-        return check;
+        return areNewContainersAdded;
     }
 }
