@@ -18,7 +18,6 @@ public class GameController : MonoBehaviour
     public GameObject sampleDrone;
 
     public GameObject sampleContainer;
-    public GameObject containerLocationStart;
 
     public DroneGeneticAlgorithm _droneGeneticAlgorithm;
 
@@ -67,7 +66,7 @@ public class GameController : MonoBehaviour
             // List of containers in the right order.
             ContainerPlan containerPlan = containerGeneticAlgorithm.CreateOptimalContainerPlan();
 
-            Transform starting_transform = containerLocationStart.transform;
+            Transform starting_transform = shipController.containerLocationStart.transform;
             
             // Before this, add containers from the ship to move to another ship.
             // Perhaps a container with another container built in!

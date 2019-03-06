@@ -12,5 +12,7 @@ public class ShipController : MonoBehaviour
     public List<GameObject> _firstLevelBuildingContainers;
     public List<GameObject> _secondLevelBuildingContainers;
 
+    public GameObject containerLocationStart;
+    
     public int _priority;
 }
