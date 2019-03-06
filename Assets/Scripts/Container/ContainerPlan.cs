@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ContainerPlan : MonoBehaviour
+public class ContainerPlan
 {
     public List<ContainerModel> firstRow;
     public List<ContainerModel> secondRow;

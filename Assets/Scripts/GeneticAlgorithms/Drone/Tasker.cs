@@ -1,17 +1,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Tasker
+namespace GeneticAlgorithms.Drone
 {
-    public List<Task> _tasks = new List<Task>();
+    public class Tasker
+    {
+        public List<Task> _tasks = new List<Task>();
 
-    public void addTask(GameObject gameObject, Vector3 startLocation, Vector3 endLocation, float length, int index, Task nextTask = null)
-    {
-        _tasks.Add(new Task(gameObject, startLocation, endLocation, length, index, nextTask));
-    }
-    
-    public void addTask(Task task)
-    {
-        _tasks.Add(task);
+        public void addTask(Task task)
+        {
+            _tasks.Add(task);
+        }
     }
 }

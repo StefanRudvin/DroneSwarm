@@ -24,6 +24,7 @@ public class LandingContainerController : MonoBehaviour
         ContainerModel newModel = newContainer.GetComponent<ContainerModel>();
         newModel._weight = containerModel._weight;
         newModel._orderPriority = containerModel._orderPriority;
+        newModel._shipPriority = containerModel._shipPriority;
         
 //        GameObject ChildGameObject1 = newContainer.transform.Find("Blue_container").gameObject;
 //        ChildGameObject1.GetComponent<Renderer>().material.color = Utility.createColorFromWeight(containerModel._weight);

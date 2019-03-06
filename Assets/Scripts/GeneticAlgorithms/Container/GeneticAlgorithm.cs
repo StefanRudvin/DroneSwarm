@@ -6,265 +6,336 @@ using Random = System.Random;
 
 /*
  *	This class serves as the backbone for the genetic algorithm.
- * 	
  */
-public class ContainerGeneticAlgorithm
+namespace GeneticAlgorithms.Container
 {
-    private readonly int _height;
-    private int _width;
-    private readonly int _length;
-
-    private bool debug = false;
-
-    private readonly List<ContainerModel> _containerModels;
-
-    // List of current chromosomes
-    private List<List<List<ContainerModel>>> _population = new List<List<List<ContainerModel>>>();
-
-    private List<List<List<ContainerModel>>> _matingPool = new List<List<List<ContainerModel>>>();
-
-    private const int PopulationSize = 100;
-    private int _generationCount = 1000;
-
-    public ContainerGeneticAlgorithm(List<ContainerModel> containerModels, int height, int width, int length)
+    public class ContainerGeneticAlgorithm
     {
-        _containerModels = containerModels;
-        _height = height;
-        _width = width;
-        _length = length;
-    }
+        private readonly int _height;
+        private int _width;
+        private readonly int _length;
 
-    private float maxWeightDifference = 0f;
-    private float minWeightDifference = 9999f;
+        private bool debug = false;
 
-    public ContainerPlan CreateOptimalContainerPlan()
-    {
-        CreateInitialPopulation();
+        private readonly List<ContainerModel> _containerModels;
 
-        if (debug) Debug.Log(string.Format("Population count: {0}", _population.Count.ToString()));
+        // List of current chromosomes
+        private List<Chromosome> _population = new List<Chromosome>();
 
-        EvolvePopulation();
-        
-        return GetBestChromosome();
-    }
+        private List<Chromosome> _matingPool = new List<Chromosome>();
 
-    private float GetChromosomeWeightDifference(List<List<ContainerModel>> chromosome)
-    {
-        var weights = new List<int>();
+        private const int PopulationSize = 100;
+        private int _generationCount = 1000;
 
-        // Then the length = 10
-        for (var k = 0; k < _length; k++)
+        public ContainerGeneticAlgorithm(List<ContainerModel> containerModels, int height, int width, int length)
         {
-            var first = chromosome[0][k];
-            var second = chromosome[1][k];
-            weights.Add(first._weight + second._weight);
+            _containerModels = containerModels;
+            _height = height;
+            _width = width;
+            _length = length;
         }
 
-        // First check the pivot difference.
-        // Then the difference in quarters.
-        // End up with 3 differences.
+        private float maxWeightDifference = 0f;
+        private float minWeightDifference = 9999f;
 
-        float halfDifference = Math.Abs(weights.Take(weights.Count / 2).Sum() - weights.Skip(weights.Count / 2).Sum());
-
-        int weightsLength = weights.Count;
-        int halfWeightsLength = weightsLength / 2;
-        int quarterWeightsLength = halfWeightsLength / 2;
-
-        float firstHalfDifference = Math.Abs(weights.GetRange(0, quarterWeightsLength).Sum() -
-                                             weights.GetRange(quarterWeightsLength, quarterWeightsLength).Sum());
-        float secondHalfDifference = Math.Abs(weights.GetRange(halfWeightsLength, quarterWeightsLength).Sum() -
-                                              weights.GetRange(halfWeightsLength + quarterWeightsLength,
-                                                  quarterWeightsLength).Sum());
-
-        float averageDifference = (halfDifference + firstHalfDifference + secondHalfDifference) / 3;
-
-        return averageDifference;
-    }
-
-    private void EvolvePopulation()
-    {
-        for (var i = 0; i < _generationCount; i++)
+        public ContainerPlan CreateOptimalContainerPlan()
         {
-            SetMaxMinWeightDifference();
+            CreateInitialPopulation();
 
-            if (maxWeightDifference == minWeightDifference) break;
+            if (debug) Debug.Log(string.Format("Population count: {0}", _population.Count.ToString()));
 
-            CreateMatingPool();
+            EvolvePopulation();
 
-            NaturalSelection();
-
-            Mutation();
-        }
-    }
-
-    private ContainerPlan GetBestChromosome()
-    {
-        var bestChromosome = new List<List<ContainerModel>>();
-        
-        foreach (var chromosome in _population)
-        {
-            float weightDifference = GetChromosomeWeightDifference(chromosome);
-            if (weightDifference != minWeightDifference) continue;
-            bestChromosome = chromosome;
-            break;
-        }
-        
-        if (debug) Debug.Log(string.Format("Found best chromosome: {0}", bestChromosome));
-        
-        return new ContainerPlan(bestChromosome);
-    }
-
-    private void Mutation()
-    {
-    }
-
-    private void NaturalSelection()
-    {
-        var newPopulation = new List<List<List<ContainerModel>>>();
-        var random = new Random();
-
-        foreach (var chromosome in _population)
-        {
-            // Select two random chromosomes from mating pool
-            var parentA = _matingPool[random.Next(0, _matingPool.Count)];
-            var parentB = _matingPool[random.Next(0, _matingPool.Count)];
-
-            // Add their crossover to the new population
-            newPopulation.Add(crossOver(parentA, parentB));
+            return GetBestChromosome();
         }
 
-        _population = newPopulation;
-    }
-
-    private List<List<ContainerModel>> crossOver(List<List<ContainerModel>> chromosomeA, List<List<ContainerModel>> chromosomeB)
-    {
-        // Create a new chromosome based on random pivot between 2 different chromosomes.
-
-        var newChromosome = getEmptyChromosome();
-        var random = new Random();
-
-        int randomPivot = random.Next(0, _length);
-
-        for (var i = 0; i < _length; i++)
+        private float GetChromosomeWeightDifference(Chromosome chromosome)
         {
-            if (i < randomPivot)
+            List<int> weights = new List<int>();
+
+            // Then the length = 10
+            for (int k = 0; k < _length; k++)
             {
-                newChromosome[0][i] = chromosomeA[0][i];
-                newChromosome[1][i] = chromosomeA[1][i];
-            }
-            else
-            {
-                newChromosome[0][i] = chromosomeB[0][i];
-                newChromosome[1][i] = chromosomeB[1][i];
-            }
-        }
-        return newChromosome;
-    }
-
-    private void SetMaxMinWeightDifference()
-    {
-        minWeightDifference = 999f;
-        maxWeightDifference = 0f;
-
-        foreach (var chromosome in _population)
-        {
-            float weightDifference = GetChromosomeWeightDifference(chromosome);
-            if (weightDifference > maxWeightDifference)
-            {
-                maxWeightDifference = weightDifference;
+                ContainerModel first = chromosome._models[0][k];
+                ContainerModel second = chromosome._models[1][k];
+                weights.Add(first._weight + second._weight);
             }
 
-            if (weightDifference < minWeightDifference)
+            // First check the pivot difference.
+            // Then the difference in quarters.
+            // End up with 3 differences.
+
+            float halfDifference =
+                Math.Abs(weights.Take(weights.Count / 2).Sum() - weights.Skip(weights.Count / 2).Sum());
+
+            int weightsLength = weights.Count;
+            int halfWeightsLength = weightsLength / 2;
+            int quarterWeightsLength = halfWeightsLength / 2;
+
+            float firstHalfDifference = Math.Abs(weights.GetRange(0, quarterWeightsLength).Sum() -
+                                                 weights.GetRange(quarterWeightsLength, quarterWeightsLength).Sum());
+            float secondHalfDifference = Math.Abs(weights.GetRange(halfWeightsLength, quarterWeightsLength).Sum() -
+                                                  weights.GetRange(halfWeightsLength + quarterWeightsLength,
+                                                      quarterWeightsLength).Sum());
+
+            float averageDifference = (halfDifference + firstHalfDifference + secondHalfDifference) / 3;
+
+            return averageDifference;
+        }
+
+        private void EvolvePopulation()
+        {
+            for (var i = 0; i < _generationCount; i++)
             {
-                minWeightDifference = weightDifference;
+                SetChromosomeFitnesses();
+
+                if (maxWeightDifference == minWeightDifference) break;
+
+                CreateMatingPool();
+
+                NaturalSelection();
+
+                Mutation();
             }
         }
-    }
 
-    private float GetFitnessFromDifference(float difference)
-    {
-        if (minWeightDifference == maxWeightDifference && difference == minWeightDifference)
+        private void SetChromosomeFitnesses()
         {
-            return 100;
+            SetMinMaxValues();
+
+            foreach (var chromosome in _population)
+            {
+                chromosome.fitness = GetFitnessFromChromosome(chromosome);
+            }
         }
-        float normalizedDifference = (difference - minWeightDifference) / (maxWeightDifference - minWeightDifference);
-        return (1 - normalizedDifference) * 100;
-    }
 
-    private void CreateMatingPool()
-    {
-        _matingPool.Clear();
+        private ContainerPlan GetBestChromosome()
+        {
+            var bestChromosome = new Chromosome();
 
-        var fitnesses = new List<float>();
-        // Add chromosomes to mating pool according to their fitness
-        foreach (var chromosome in _population)
+            bestChromosome.fitness = 0;
+
+            foreach (var chromosome in _population)
+            {
+                if (chromosome.fitness > bestChromosome.fitness)
+                {
+                    bestChromosome = chromosome;
+                }
+            }
+
+            if (debug) Debug.Log(string.Format("Found best chromosome: {0}", bestChromosome));
+
+            return new ContainerPlan(bestChromosome._models);
+        }
+
+        private void Mutation()
+        {
+        }
+
+        private void NaturalSelection()
+        {
+            var newPopulation = new List<Chromosome>();
+            var random = new Random();
+
+            foreach (var chromosome in _population)
+            {
+                // Select two random chromosomes from mating pool
+                var parentA = _matingPool[random.Next(0, _matingPool.Count)];
+                var parentB = _matingPool[random.Next(0, _matingPool.Count)];
+
+                // Add their crossover to the new population
+                newPopulation.Add(crossOver(parentA, parentB));
+            }
+
+            _population = newPopulation;
+        }
+
+        private Chromosome crossOver(Chromosome chromosomeA,
+            Chromosome chromosomeB)
+        {
+            // Create a new chromosome based on random pivot between 2 different chromosomes.
+
+            var newChromosome = getEmptyChromosome();
+            var random = new Random();
+
+            int randomPivot = random.Next(0, _length);
+
+            for (var i = 0; i < _length; i++)
+            {
+                if (i < randomPivot)
+                {
+                    newChromosome._models[0][i] = chromosomeA._models[0][i];
+                    newChromosome._models[1][i] = chromosomeA._models[1][i];
+                }
+                else
+                {
+                    newChromosome._models[0][i] = chromosomeB._models[0][i];
+                    newChromosome._models[1][i] = chromosomeB._models[1][i];
+                }
+            }
+
+            return newChromosome;
+        }
+
+        private void SetMinMaxValues()
+        {
+            minWeightDifference = 999f;
+            maxWeightDifference = 0f;
+
+            foreach (var chromosome in _population)
+            {
+                float weightDifference = GetChromosomeWeightDifference(chromosome);
+                if (weightDifference > maxWeightDifference)
+                {
+                    maxWeightDifference = weightDifference;
+                }
+
+                if (weightDifference < minWeightDifference)
+                {
+                    minWeightDifference = weightDifference;
+                }
+            }
+        }
+
+        private float GetWeightFitnessFromDifference(float difference)
+        {
+            if (minWeightDifference == maxWeightDifference && difference == minWeightDifference)
+            {
+                return 100;
+            }
+
+            float normalizedDifference =
+                (difference - minWeightDifference) / (maxWeightDifference - minWeightDifference);
+            return (1 - normalizedDifference) * 100;
+        }
+
+        private float GetFitnessFromChromosome(Chromosome chromosome)
         {
             float difference = GetChromosomeWeightDifference(chromosome);
 
-            float fitness = GetFitnessFromDifference(difference);
-            fitnesses.Add(fitness);
+            float weightFitness = GetWeightFitnessFromDifference(difference);
 
-            for (var k = 0; k < fitness; k++)
-            {
-                _matingPool.Add(chromosome);
-            }
+            float priorityWeight = PriorityWeight(chromosome);
+            
+            // This is as low as possible
+            float normalizedPriorityFitness = (priorityWeight - 0) / (3000 - 0);
+            
+            // So revert is with 1 - fitness
+            float priorityFitness = (1 - normalizedPriorityFitness) * 100;
+
+            float averageFitness = (priorityFitness + weightFitness) / 2;
+
+            return averageFitness;
         }
-        if (debug) Debug.Log(string.Format("Average fitness for population: {0}",
-            (fitnesses.Sum() / fitnesses.Count).ToString()));
-    }
 
-    private List<List<ContainerModel>> getEmptyChromosome()
-    {
-        var chromosome = new List<List<ContainerModel>>();
-
-        List<ContainerModel> testContainers = new List<ContainerModel>
+        private float PriorityWeight(Chromosome chromosome)
         {
-            _containerModels[0],
-            _containerModels[0],
-            _containerModels[0],
-            _containerModels[0],
-            _containerModels[0],
-            _containerModels[0],
-            _containerModels[0],
-            _containerModels[0],
-            _containerModels[0],
-            _containerModels[0]
-        };
-
-        chromosome.Add(testContainers);
-        chromosome.Add(testContainers);
-
-        return chromosome;
-    }
-
-    private void CreateInitialPopulation()
-    {
-        // We have the 20 container models.
-
-        // Time to create a population of e.g. 100 chromosomes that have a mixture of the populations.
-        // Each chromosome is a container plan, i.e. a 2d array, 2* 10 containers.
-
-        var random = new Random();
-
-        for (var i = 0; i < PopulationSize; i++)
-        {
-            var temporaryContainers = new List<ContainerModel>(_containerModels);
-            var chromosome = getEmptyChromosome();
-
-            // First do height = 2
-            for (var j = 0; j < _height; j++)
+            float weight = 0f;
+            
+            for (int i = 0; i < chromosome._models.Count; i++)
             {
-                // Then the length = 10
-                for (var k = 0; k < _length; k++)
-                {
-                    // So this happens 2 * 10 times = 20
-                    int elementToPick = random.Next(0, temporaryContainers.Count - 1);
+                List<ContainerModel> containerModels = chromosome._models[i];
 
-                    chromosome[j][k] = temporaryContainers[elementToPick];
-                    temporaryContainers.RemoveAt(elementToPick);
+                // Top layer has a higher penalty, so higher priorities go higher up on the boat.
+                int multiplier = i == 0 ? 1 : 2;
+                
+                foreach (ContainerModel containerModel in containerModels)
+                {
+                    weight += (100 - containerModel._orderPriority) * multiplier;
                 }
             }
-            _population.Add(chromosome);
+            return weight;
+        }
+
+        private void CreateMatingPool()
+        {
+            _matingPool.Clear();
+
+            var fitnesses = new List<float>();
+            // Add chromosomes to mating pool according to their fitness
+            foreach (var chromosome in _population)
+            {
+                fitnesses.Add(chromosome.fitness);
+
+                for (var k = 0; k < chromosome.fitness; k++)
+                {
+                    _matingPool.Add(chromosome);
+                }
+            }
+
+            if (debug)
+                Debug.Log(string.Format("Average fitness for population: {0}",
+                    (fitnesses.Sum() / fitnesses.Count).ToString()));
+        }
+
+        private Chromosome getEmptyChromosome()
+        {
+            var chromosome = new Chromosome();
+
+            List<ContainerModel> testContainersA = new List<ContainerModel>
+            {
+                _containerModels[10],
+                _containerModels[11],
+                _containerModels[12],
+                _containerModels[13],
+                _containerModels[14],
+                _containerModels[15],
+                _containerModels[16],
+                _containerModels[17],
+                _containerModels[18],
+                _containerModels[19]
+            };
+
+            List<ContainerModel> testContainersB = new List<ContainerModel>
+            {
+                _containerModels[0],
+                _containerModels[1],
+                _containerModels[2],
+                _containerModels[3],
+                _containerModels[4],
+                _containerModels[5],
+                _containerModels[6],
+                _containerModels[7],
+                _containerModels[8],
+                _containerModels[9]
+            };
+
+            chromosome._models.Add(testContainersA);
+            chromosome._models.Add(testContainersB);
+
+            return chromosome;
+        }
+
+        private void CreateInitialPopulation()
+        {
+            // We have the 20 container models.
+
+            // Time to create a population of e.g. 100 chromosomes that have a mixture of the populations.
+            // Each chromosome is a container plan, i.e. a 2d array, 2* 10 containers.
+
+            var random = new Random();
+
+            for (int i = 0; i < PopulationSize; i++)
+            {
+                List<ContainerModel> temporaryContainers = new List<ContainerModel>(_containerModels);
+                Chromosome chromosome = getEmptyChromosome();
+
+                // First do height = 2
+                for (int j = 0; j < _height; j++)
+                {
+                    // Then the length = 10
+                    for (int k = 0; k < _length; k++)
+                    {
+                        // So this happens 2 * 10 times = 20
+                        int elementToPick = random.Next(0, temporaryContainers.Count - 1);
+
+                        chromosome._models[j][k] = temporaryContainers[elementToPick];
+                        temporaryContainers.RemoveAt(elementToPick);
+                    }
+                }
+
+                _population.Add(chromosome);
+            }
         }
     }
 }

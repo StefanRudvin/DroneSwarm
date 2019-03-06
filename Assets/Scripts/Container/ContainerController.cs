@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using GeneticAlgorithms.Drone;
 using UnityEngine;
 
 public class ContainerController : MonoBehaviour
@@ -21,6 +22,8 @@ public class ContainerController : MonoBehaviour
 
     public ContainerModel _containerModel;
 
+    public int _shipPriority = 0;
+    
     public GameObject _nextContainer;
     
     private Task _task;
@@ -56,7 +59,7 @@ public class ContainerController : MonoBehaviour
 
     void removeBuildingBlockFromShipController()
     {
-        _ShipController.containers.Remove(gameObject);
+        _ShipController._containers.Remove(gameObject);
     }
 
     void placeLandingContainer()
