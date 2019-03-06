@@ -1,13 +1,16 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using Random = System.Random;
 
 public class ShipController : MonoBehaviour
 {
-    public List<GameObject> firstLevelLandingContainers;
-    public List<GameObject> secondLevelLandingContainers;
+    public List<GameObject> _firstLevelLandingContainers;
+    public List<GameObject> _secondLevelLandingContainers;
 
-    public List<GameObject> containers;
+    public List<GameObject> _containers;
     
-    public List<GameObject> firstLevelBuildingContainers;
-    public List<GameObject> secondLevelBuildingContainers;
+    public List<GameObject> _firstLevelBuildingContainers;
+    public List<GameObject> _secondLevelBuildingContainers;
+
+    public int _priority;
 }

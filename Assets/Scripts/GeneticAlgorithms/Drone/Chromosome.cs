@@ -4,17 +4,22 @@ using System.Linq;
 using UnityEngine;
 using Random = System.Random;
 
-public class Chromosome
+namespace GeneticAlgorithms.Drone
 {
-    public List<DroneCollection> _droneCollection = new List<DroneCollection>();
-    public float _fitness;
-
-    public float _weight;
-
-    public Chromosome() {}
-
-    public Chromosome(List<DroneCollection> droneCollection)
+    public class Chromosome
     {
-        _droneCollection = droneCollection;
+        public List<DroneCollection> _droneCollection = new List<DroneCollection>();
+        public float _fitness;
+
+        public float _weight;
+
+        public Chromosome()
+        {
+        }
+
+        public Chromosome(List<DroneCollection> droneCollection)
+        {
+            _droneCollection = droneCollection;
+        }
     }
 }

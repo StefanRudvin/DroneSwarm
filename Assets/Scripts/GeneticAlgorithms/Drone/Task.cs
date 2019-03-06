@@ -1,31 +1,35 @@
 using UnityEngine;
 
-public class Task
+namespace GeneticAlgorithms.Drone
 {
-    public Vector3 _startLocation;
-    public Vector3 _endLocation;
-    public float _weight;
-    public readonly GameObject _containerObject;
-    public Task _nextTask;
-    public float _initialWeight = 0;
-    public int _index;
-    
-    public bool isCompleted = false;
-
-    public bool isUpperLevel()
+    public class Task
     {
-        return _nextTask == null;
-    }
+        public readonly GameObject _containerObject;
+        public float _initialWeight = 0;
+        public Vector3 _startLocation;
+        public Vector3 _endLocation;
+        public int _shipPriority;
+        public Task _nextTask;
+        public float _weight;
+        public int _index;
 
-    public Task(GameObject containerObject, Vector3 startLocation, Vector3 endLocation, float weight, int index,
-        Task nextTask = null)
-    {
-        if (nextTask != null) _nextTask = nextTask;
+        public bool isCompleted = false;
 
-        _index = index;
-        _containerObject = containerObject;
-        _startLocation = startLocation;
-        _endLocation = endLocation;
-        _weight = weight;
+        public bool isUpperLevel()
+        {
+            return _nextTask == null;
+        }
+
+        public Task(GameObject containerObject, Vector3 startLocation, Vector3 endLocation, float weight, int index, int shipPriority,
+            Task nextTask = null)
+        {
+            if (nextTask != null) _nextTask = nextTask;
+            _containerObject = containerObject;
+            _startLocation = startLocation;
+            _shipPriority = shipPriority;
+            _endLocation = endLocation;
+            _weight = weight;
+            _index = index;
+        }
     }
 }

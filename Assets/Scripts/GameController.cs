@@ -2,7 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using GeneticAlgorithms.Container;
+using GeneticAlgorithms.Drone;
 using UnityEngine;
+using Chromosome = GeneticAlgorithms.Drone.Chromosome;
 using Random = System.Random;
 
 public class GameController : MonoBehaviour
@@ -20,6 +23,8 @@ public class GameController : MonoBehaviour
     public DroneGeneticAlgorithm _droneGeneticAlgorithm;
 
     private Chromosome _dronePlan;
+    
+    private int maxPriority = 100;
 
     public List<DroneCollection> _droneCollections = new List<DroneCollection>();
 
@@ -36,7 +41,13 @@ public class GameController : MonoBehaviour
         RunGeneticAlgorithm();
         
         _taskManager = new TaskManager(_dronePlan);
+
         _taskManager._containers = _droneGeneticAlgorithm._containers;
+        
+        if (_taskManager == null)
+        {
+            Debug.Log("TaskManager not loaded.");
+        }
     }
 
     /*
@@ -47,12 +58,12 @@ public class GameController : MonoBehaviour
     {
         foreach (var ship in _ships)
         {
-            var containerModels = createRandomizedContainerModels();
+            ShipController shipController = ship.GetComponent<ShipController>();
+            
+            var containerModels = createRandomizedContainerModels(shipController._priority);
 
             ContainerGeneticAlgorithm containerGeneticAlgorithm = new ContainerGeneticAlgorithm(containerModels, 2, 1, 10);
 
-            ShipController shipController = ship.GetComponent<ShipController>();
-            
             // List of containers in the right order.
             ContainerPlan containerPlan = containerGeneticAlgorithm.CreateOptimalContainerPlan();
 
@@ -74,9 +85,10 @@ public class GameController : MonoBehaviour
                 GameObject firstLevelContainer = Instantiate(sampleContainer, temp, starting_transform.rotation);
                 ContainerController firstLevelContainerController = firstLevelContainer.GetComponent<ContainerController>();
                 
-                firstLevelContainerController.LandingContainerController = shipController.firstLevelLandingContainers[i]
+                firstLevelContainerController.LandingContainerController = shipController._firstLevelLandingContainers[i]
                     .GetComponent<LandingContainerController>();
                 firstLevelContainerController._ShipController = shipController;
+                firstLevelContainerController._shipPriority = shipController._priority;
                 firstLevelContainerController._containerModel = containerPlan.firstRow[i];
                 
 //                GameObject  ChildGameObject1 = firstLevelContainer.transform.GetChild (0).gameObject;
@@ -87,9 +99,10 @@ public class GameController : MonoBehaviour
                 var secondLevelContainer = Instantiate(sampleContainer, temp, starting_transform.rotation);
                 var secondLevelContainerController = secondLevelContainer.GetComponent<ContainerController>();
 
-                secondLevelContainerController.LandingContainerController = shipController.secondLevelLandingContainers[i]
+                secondLevelContainerController.LandingContainerController = shipController._secondLevelLandingContainers[i]
                     .GetComponent<LandingContainerController>();
                 secondLevelContainerController._ShipController = shipController;
+                secondLevelContainerController._shipPriority = shipController._priority;
                 secondLevelContainerController._containerModel = containerPlan.secondRow[i];
                 
 //                GameObject  ChildGameObject2 = secondLevelContainer.transform.GetChild (0).gameObject;
@@ -97,23 +110,23 @@ public class GameController : MonoBehaviour
 //              
                 firstLevelContainerController._nextContainer = secondLevelContainer;
                 
-                shipController.firstLevelBuildingContainers.Add(firstLevelContainer);
-                shipController.secondLevelBuildingContainers.Add(secondLevelContainer);
-                shipController.containers.Add(firstLevelContainer);
-                shipController.containers.Add(secondLevelContainer);
+                shipController._firstLevelBuildingContainers.Add(firstLevelContainer);
+                shipController._secondLevelBuildingContainers.Add(secondLevelContainer);
+                shipController._containers.Add(firstLevelContainer);
+                shipController._containers.Add(secondLevelContainer);
             }
-            _droneGeneticAlgorithm.AddContainers(shipController.firstLevelBuildingContainers);
+            _droneGeneticAlgorithm.AddContainers(shipController._firstLevelBuildingContainers);
         }
     }
 
-    static List<ContainerModel> createRandomizedContainerModels()
+    List<ContainerModel> createRandomizedContainerModels(int shipPriority)
     {
         var containerModels = new List<ContainerModel>();
         var random = new Random();
 
         for (var i = 0; i < 20; i++)
         {
-            var containerModel = new ContainerModel(random.Next(100, 1000), random.Next(1, 10));
+            var containerModel = new ContainerModel(random.Next(100, 1000), random.Next(1, maxPriority), shipPriority);
             containerModels.Add(containerModel);
         }
         return containerModels;
@@ -146,6 +159,10 @@ public class GameController : MonoBehaviour
 
     private void Update()
     {
+        if (_taskManager == null)
+        {
+            Debug.Log("ok then.");
+        }
         // Return the list of new tasks from here.
         _taskManager._containers = _droneGeneticAlgorithm._containers;
         if (_taskManager.Run())
@@ -160,6 +177,7 @@ public class GameController : MonoBehaviour
 
     private void RunGeneticAlgorithm()
     {
-        _dronePlan = _droneGeneticAlgorithm.Run(); 
+        var plan = _droneGeneticAlgorithm.Run();
+        if (plan != null) _dronePlan = plan;
     }
 }
