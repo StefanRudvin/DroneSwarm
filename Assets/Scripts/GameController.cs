@@ -38,11 +38,13 @@ public class GameController : MonoBehaviour
         _droneGeneticAlgorithm.SetDroneCollections(_droneCollections);
         
         RunGeneticAlgorithm();
-        
-        _taskManager = new TaskManager(_dronePlan);
 
-        _taskManager._containers = _droneGeneticAlgorithm._containers;
-        
+        _taskManager = new TaskManager(_dronePlan)
+        {
+            _containers = _droneGeneticAlgorithm._containers
+        };
+
+
         if (_taskManager == null)
         {
             Debug.Log("TaskManager not loaded.");
@@ -158,6 +160,10 @@ public class GameController : MonoBehaviour
 
     private void Update()
     {
+        for (int i = 0; i < 101; i++)
+        {
+            RunGeneticAlgorithm();
+        }
         if (_taskManager == null)
         {
             Debug.Log("ok then.");

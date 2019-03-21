@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using UnityEngine;
+using UnityEngineInternal;
 using Random = System.Random;
-
-// ReSharper disable SpecifyACultureInStringConversionExplicitly
 
 /*
  *	This class serves as the backbone for the genetic algorithm.
@@ -30,7 +30,11 @@ namespace GeneticAlgorithms.Drone
 
         private List<DroneCollection> _droneCollections;
 
-        public int taskIndex = 0;
+        private int taskIndex = 0;
+
+        private string filePath;
+
+        private Dictionary<int, float> _resultsDictionary = new Dictionary<int, float>();
 
         public DroneGeneticAlgorithm()
         {
@@ -45,13 +49,13 @@ namespace GeneticAlgorithms.Drone
             _droneCollections = droneCollections;
         }
 
-
         private void Reset()
         {
             _matingPool.Clear();
             _population.Clear();
             _fittestChromosome = null;
             _fittestChromosomeWeight = 1000000000;
+            _resultsDictionary.Clear();
 
             foreach (var droneCollection in _droneCollections)
             {
@@ -59,9 +63,26 @@ namespace GeneticAlgorithms.Drone
             }
         }
 
+        private void createResultsFile()
+        {
+//            string path = "Assets/Results/";
+//            DateTime dateTime = DateTime.Now;
+//            filePath = string.Format("{0}-{1}-{2}-{3}-{4}-{5}.txt",
+//                path, dateTime.Day.ToString(),
+//                dateTime.Hour.ToString(),
+//                dateTime.Minute.ToString(),
+//                dateTime.Second.ToString(),
+//                dateTime.Millisecond.ToString()
+//            );
+//            File.Create(filePath);
+            string path = "Assets/Results/results.txt";
+            filePath = path;
+        }
+
         public Chromosome Run()
         {
             Reset();
+            createResultsFile();
             RemoveCompletedContainers();
 
             if (_containers.Count == 0)
@@ -69,16 +90,18 @@ namespace GeneticAlgorithms.Drone
                 Debug.Log("done!");
                 return null;
             }
+
             CreateInitialPopulation();
 
-            ProcessPopulation();
-            EvolvePopulation();
+            ProcessPopulation(0);
+            //EvolvePopulation();
+            WriteResultsToFile();
             return GetBestChromosome();
         }
 
         private void EvolvePopulation()
         {
-            for (int i = 0; i < GenerationCount; i++)
+            for (int i = 1; i < GenerationCount; i++)
             {
                 if (_containers.Count == 0)
                 {
@@ -92,7 +115,7 @@ namespace GeneticAlgorithms.Drone
 
                 Mutation();
 
-                if (ProcessPopulation()) break;
+                if (ProcessPopulation(i)) break;
             }
         }
 
@@ -346,7 +369,7 @@ namespace GeneticAlgorithms.Drone
             _containers = containers;
         }
 
-        private bool ProcessPopulation()
+        private bool ProcessPopulation(int generationCount)
         {
             float minWeight = 9999f;
             float maxWeight = 0;
@@ -392,7 +415,27 @@ namespace GeneticAlgorithms.Drone
 
             float averageFitness = fitnesses.Sum() / fitnesses.Count;
 
+            AddFitnessToResultsDictionary(generationCount, _fittestChromosome._weight);
+
             return averageFitness == 100f;
+        }
+
+        private void AddFitnessToResultsDictionary(int generationCount, float fitness)
+        {
+            _resultsDictionary.Add(generationCount, fitness);
+        }
+
+
+        private void WriteResultsToFile()
+        {
+            StreamWriter writer = new StreamWriter(filePath, true);
+
+            foreach (var entry in _resultsDictionary)
+            {
+                writer.WriteLine("{0}", entry.Value.ToString());
+            }
+
+            writer.Close();
         }
 
         /*
@@ -438,9 +481,9 @@ namespace GeneticAlgorithms.Drone
                 for (int i = 0; i < droneCollection._tasks.Count; i++)
                 {
                     Task task = droneCollection._tasks[i];
-                    
-                    shipPriorityPenalty += (100 - task._shipPriority) * (i + 1); 
-                    
+
+                    shipPriorityPenalty += (100 - task._shipPriority) * (i + 1);
+
                     SetDroneToTask(droneCollection, task);
 
                     float droneWeightWithShipPriority = droneCollection._currentWeight + shipPriorityPenalty;
