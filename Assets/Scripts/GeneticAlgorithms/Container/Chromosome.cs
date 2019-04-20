@@ -10,5 +10,6 @@ namespace GeneticAlgorithms.Container
     {
         public float fitness = 0;
         public List<List<ContainerModel>> _models = new List<List<ContainerModel>>();
+        public float weight;
     }
 }

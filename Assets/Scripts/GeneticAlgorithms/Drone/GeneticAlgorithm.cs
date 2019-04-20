@@ -30,9 +30,13 @@ namespace GeneticAlgorithms.Drone
 
         private List<DroneCollection> _droneCollections;
 
+        public List<float> lastGenFitnesses = new List<float>();
+
         private int taskIndex = 0;
 
         private string filePath;
+
+        private bool DebugAlgo = false;
 
         private Dictionary<int, float> _resultsDictionary = new Dictionary<int, float>();
 
@@ -75,14 +79,13 @@ namespace GeneticAlgorithms.Drone
 //                dateTime.Millisecond.ToString()
 //            );
 //            File.Create(filePath);
-            string path = "Assets/Results/results.txt";
+            string path = "Assets/Results/droneResults.csv";
             filePath = path;
         }
 
         public Chromosome Run()
         {
             Reset();
-            createResultsFile();
             RemoveCompletedContainers();
 
             if (_containers.Count == 0)
@@ -92,10 +95,25 @@ namespace GeneticAlgorithms.Drone
             }
 
             CreateInitialPopulation();
-
             ProcessPopulation(0);
-            //EvolvePopulation();
-            WriteResultsToFile();
+
+            if (DebugAlgo)
+            {
+                createResultsFile();
+
+                DateTime dateTime = DateTime.Now;
+
+                EvolvePopulation();
+
+                TimeSpan permutationTime = DateTime.Now.Subtract(dateTime);
+
+                WriteResultsToFile();
+            }
+            else
+            {
+                EvolvePopulation();
+            }
+
             return GetBestChromosome();
         }
 
@@ -113,9 +131,7 @@ namespace GeneticAlgorithms.Drone
 
                 NaturalSelection();
 
-                Mutation();
-
-                if (ProcessPopulation(i)) break;
+                ProcessPopulation(i);
             }
         }
 
@@ -229,10 +245,6 @@ namespace GeneticAlgorithms.Drone
             return new Chromosome(_fittestChromosome._droneCollection);
         }
 
-        private void Mutation()
-        {
-        }
-
         private void NaturalSelection()
         {
             List<Chromosome> newPopulation = new List<Chromosome>();
@@ -251,43 +263,41 @@ namespace GeneticAlgorithms.Drone
             _population = newPopulation;
         }
 
-        private Chromosome CrossOver(Chromosome chromosomeA, Chromosome chromosomeB)
+        private List<Task> MergeTasks(Chromosome chromosomeA, Chromosome chromosomeB)
         {
-            List<Task> lineupA = new List<Task>();
-            List<Task> lineupB = new List<Task>();
-
-            Chromosome newChromosome = CreateEmptyChromosome();
+            List<Task> tasksA = new List<Task>();
+            List<Task> tasksB = new List<Task>();
 
             foreach (DroneCollection droneCollection in chromosomeA._droneCollection)
             {
-                lineupA.AddRange(droneCollection._tasks);
+                tasksA.AddRange(droneCollection._tasks);
             }
 
             foreach (DroneCollection droneCollection in chromosomeB._droneCollection)
             {
-                lineupB.AddRange(droneCollection._tasks);
+                tasksB.AddRange(droneCollection._tasks);
             }
 
-            if (lineupA.Count != lineupB.Count || lineupA.Count == 0)
+            if (tasksA.Count != tasksB.Count || tasksA.Count == 0)
             {
                 Debug.Log("Chromosome counts don't match up!");
             }
 
             Random random = new Random();
 
-            // CROSSOVER BABY
-            int sectionStart = random.Next(0, lineupA.Count);
-            int sectionEnd = random.Next(sectionStart, lineupA.Count);
-            List<Task> section = lineupA.GetRange(sectionStart, sectionEnd - sectionStart);
-            List<Task> newLineUp = new List<Task>();
+            // Start crossover
+            int sectionStart = random.Next(0, tasksA.Count);
+            int sectionEnd = random.Next(sectionStart, tasksA.Count);
+            List<Task> section = tasksA.GetRange(sectionStart, sectionEnd - sectionStart);
+            List<Task> mergedTasks = new List<Task>();
             int currentInt = 0;
 
             // XO crossover algorithm.
-            for (int i = 0; i < lineupA.Count; i++)
+            for (int i = 0; i < tasksA.Count; i++)
             {
                 if (i >= sectionStart && i < sectionEnd)
                 {
-                    newLineUp.Add(lineupA[i]);
+                    mergedTasks.Add(tasksA[i]);
                 }
                 else
                 {
@@ -298,7 +308,7 @@ namespace GeneticAlgorithms.Drone
 
                         foreach (var item in section)
                         {
-                            if (item._index == lineupB[currentInt]._index)
+                            if (item._index == tasksB[currentInt]._index)
                             {
                                 found = true;
                             }
@@ -306,7 +316,7 @@ namespace GeneticAlgorithms.Drone
 
                         if (!found)
                         {
-                            newLineUp.Add(lineupB[currentInt]);
+                            mergedTasks.Add(tasksB[currentInt]);
                             currentInt++;
                             break;
                         }
@@ -316,10 +326,21 @@ namespace GeneticAlgorithms.Drone
                 }
             }
 
-            // Map new lineup to drones.
-            int tasksPerDroneCollection = newLineUp.Count / newChromosome._droneCollection.Count;
+            return mergedTasks;
+        }
+
+        private Chromosome CrossOver(Chromosome chromosomeA, Chromosome chromosomeB)
+        {
+            Chromosome newChromosome = CreateEmptyChromosome();
+            
+            List<Task> mutatedLineUp = MergeTasks(chromosomeA, chromosomeB);
+//            List<Task> mutatedLineUp = Mutation(newLineUp);
+
+            // Map task list to drones.
+            int tasksPerDroneCollection = mutatedLineUp.Count / newChromosome._droneCollection.Count;
             int runningCount = 0;
 
+            // Done in case there's fewer tasks than drones
             if (tasksPerDroneCollection < 1)
             {
                 foreach (var droneCollection in newChromosome._droneCollection)
@@ -329,8 +350,8 @@ namespace GeneticAlgorithms.Drone
 
                 foreach (var droneCollection in newChromosome._droneCollection)
                 {
-                    if (runningCount == newLineUp.Count) break;
-                    droneCollection._tasks = newLineUp.GetRange(runningCount, 1);
+                    if (runningCount == mutatedLineUp.Count) break;
+                    droneCollection._tasks = mutatedLineUp.GetRange(runningCount, 1);
                     runningCount += 1;
                 }
             }
@@ -339,12 +360,36 @@ namespace GeneticAlgorithms.Drone
                 foreach (var droneCollection in newChromosome._droneCollection)
                 {
                     droneCollection._tasks.Clear();
-                    droneCollection._tasks = newLineUp.GetRange(runningCount, tasksPerDroneCollection);
+                    droneCollection._tasks = mutatedLineUp.GetRange(runningCount, tasksPerDroneCollection);
                     runningCount += tasksPerDroneCollection;
                 }
             }
-
             return newChromosome;
+        }
+
+        /*
+         * 10% chance to swap 2 random indexes of list. 
+         */
+        private List<Task> Mutation(List<Task> lineUp)
+        {
+            Random random = new Random();
+
+            int mutationIndex = random.Next(0, 10);
+
+            if (mutationIndex != 0) return lineUp;
+
+            List<Task> mutatedList = new List<Task>(lineUp);
+
+            int index1 = random.Next(0, mutatedList.Count / 2);
+            int index2 = random.Next(mutatedList.Count / 2, mutatedList.Count);
+
+            Task ok = mutatedList[index1];
+            Task temp = new Task(ok._containerObject, ok._startLocation, ok._endLocation, ok._weight, ok._index,
+                ok._shipPriority, ok._nextTask);
+
+            mutatedList[index1] = mutatedList[index2];
+            mutatedList[index2] = temp;
+            return mutatedList;
         }
 
         private void CreateMatingPool()
@@ -369,7 +414,7 @@ namespace GeneticAlgorithms.Drone
             _containers = containers;
         }
 
-        private bool ProcessPopulation(int generationCount)
+        private void ProcessPopulation(int generationCount)
         {
             float minWeight = 9999f;
             float maxWeight = 0;
@@ -380,7 +425,16 @@ namespace GeneticAlgorithms.Drone
                 minWeight = Math.Min(minWeight, chromosome._weight);
                 maxWeight = Math.Max(maxWeight, chromosome._weight);
             }
+            
+            SetFitnesses(minWeight, maxWeight);
+            if (DebugAlgo)
+            {
+                AddFitnessToResultsDictionary(generationCount, _fittestChromosome._weight);
+            }
+        }
 
+        private void SetFitnesses(float minWeight, float maxWeight)
+        {
             List<float> fitnesses = new List<float>();
 
             foreach (Chromosome chromosome in _population)
@@ -414,10 +468,6 @@ namespace GeneticAlgorithms.Drone
             }
 
             float averageFitness = fitnesses.Sum() / fitnesses.Count;
-
-            AddFitnessToResultsDictionary(generationCount, _fittestChromosome._weight);
-
-            return averageFitness == 100f;
         }
 
         private void AddFitnessToResultsDictionary(int generationCount, float fitness)
@@ -425,17 +475,22 @@ namespace GeneticAlgorithms.Drone
             _resultsDictionary.Add(generationCount, fitness);
         }
 
-
         private void WriteResultsToFile()
         {
-            StreamWriter writer = new StreamWriter(filePath, true);
+            lastGenFitnesses.Add(_resultsDictionary[99]);
+
+            string[] arrLine = File.ReadAllLines(filePath);
+
+            int counter = 0;
 
             foreach (var entry in _resultsDictionary)
             {
-                writer.WriteLine("{0}", entry.Value.ToString());
+                arrLine[counter] = String.Format("{0}, {1}", arrLine[counter].ToString(), entry.Value.ToString());
+
+                counter++;
             }
 
-            writer.Close();
+            File.WriteAllLines(filePath, arrLine);
         }
 
         /*

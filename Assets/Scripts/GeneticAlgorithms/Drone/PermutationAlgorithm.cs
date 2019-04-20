@@ -34,6 +34,8 @@ namespace GeneticAlgorithms.Drone
 
         private string filePath;
 
+        private int _permutationCount = 0;
+
         private Dictionary<int, float> _resultsDictionary = new Dictionary<int, float>();
 
         public PermutationAlgorithm()
@@ -56,6 +58,7 @@ namespace GeneticAlgorithms.Drone
             _fittestChromosome = null;
             _fittestChromosomeWeight = 1000000000;
             _resultsDictionary.Clear();
+            _permutationCount = 0;
 
             foreach (var droneCollection in _droneCollections)
             {
@@ -97,10 +100,14 @@ namespace GeneticAlgorithms.Drone
             Tasker currentTasker = GetTasker();
 
             List<Task> tasks = currentTasker._tasks;
+            
+//            DateTime dateTime = DateTime.Now;
+            
+            Permute(tasks, 0, tasks.Count - 1);
+            
+//            TimeSpan permutationTime = DateTime.Now.Subtract(dateTime);            
 
-            Permute(tasks, 0, tasks.Count);
-
-            WriteResultsToFile(GetBestChromosome()._weight.ToString());
+//            WriteResultsToFile(GetBestChromosome()._weight.ToString());
 
             return GetBestChromosome();
         }
@@ -144,6 +151,7 @@ namespace GeneticAlgorithms.Drone
         {
             if (l == r)
             {
+                _permutationCount++;
                 setTasksToNewChromosome(tasks);
             }
             else

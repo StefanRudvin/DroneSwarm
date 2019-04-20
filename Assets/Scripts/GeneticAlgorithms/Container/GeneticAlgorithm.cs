@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 using Random = System.Random;
@@ -14,8 +15,14 @@ namespace GeneticAlgorithms.Container
         private readonly int _height;
         private int _width;
         private readonly int _length;
+        
+        private string filePath = "Assets/Results/containerResults.csv";
+        
+        private Dictionary<int, float> _resultsDictionary = new Dictionary<int, float>();
 
         private bool debug = false;
+        
+        public List<float> lastGenFitnesses = new List<float>();
 
         private readonly List<ContainerModel> _containerModels;
 
@@ -25,7 +32,10 @@ namespace GeneticAlgorithms.Container
         private List<Chromosome> _matingPool = new List<Chromosome>();
 
         private const int PopulationSize = 100;
-        private int _generationCount = 1000;
+        private int _generationCount = 100;
+
+        private Chromosome _fittestChromosome;
+        private float _fittestChromosomeWeight = 99999999999999f;
 
         public ContainerGeneticAlgorithm(List<ContainerModel> containerModels, int height, int width, int length)
         {
@@ -37,16 +47,54 @@ namespace GeneticAlgorithms.Container
 
         private float maxWeightDifference = 0f;
         private float minWeightDifference = 9999f;
+        
+        private void Reset()
+        {
+            _matingPool.Clear();
+            _population.Clear();
+            _fittestChromosome = null;
+            _fittestChromosomeWeight = 1000000000;
+            _resultsDictionary.Clear();
+        }
 
         public ContainerPlan CreateOptimalContainerPlan()
         {
+            Reset();
             CreateInitialPopulation();
 
-            if (debug) Debug.Log(string.Format("Population count: {0}", _population.Count.ToString()));
+            if (debug)
+            {
+                DateTime dateTime = DateTime.Now;
 
-            EvolvePopulation();
+                EvolvePopulation();
+
+                TimeSpan permutationTime = DateTime.Now.Subtract(dateTime);
+
+                WriteResultsToFile();
+            }
+            else
+            {
+                EvolvePopulation();
+            }
 
             return GetBestChromosome();
+        }
+        
+        private void WriteResultsToFile()
+        {
+            lastGenFitnesses.Add(_resultsDictionary[99]);
+
+            string[] arrLine = File.ReadAllLines(filePath);
+
+            int counter = 0;
+
+            foreach (var entry in _resultsDictionary)
+            {
+                arrLine[counter] = String.Format("{0}, {1}", arrLine[counter].ToString(), entry.Value.ToString());
+                counter++;
+            }
+
+            File.WriteAllLines(filePath, arrLine);
         }
 
         private float GetChromosomeWeightDifference(Chromosome chromosome)
@@ -89,12 +137,14 @@ namespace GeneticAlgorithms.Container
             {
                 SetChromosomeFitnesses();
 
-                if (maxWeightDifference == minWeightDifference) break;
+//                if (maxWeightDifference == minWeightDifference) break;
 
                 CreateMatingPool();
 
                 NaturalSelection();
-
+                
+                _resultsDictionary.Add(i, _fittestChromosomeWeight);
+                
                 Mutation();
             }
         }
@@ -111,25 +161,15 @@ namespace GeneticAlgorithms.Container
 
         private ContainerPlan GetBestChromosome()
         {
-            var bestChromosome = new Chromosome();
-
-            bestChromosome.fitness = 0;
-
-            foreach (var chromosome in _population)
-            {
-                if (chromosome.fitness > bestChromosome.fitness)
-                {
-                    bestChromosome = chromosome;
-                }
-            }
-
-            if (debug) Debug.Log(string.Format("Found best chromosome: {0}", bestChromosome));
-
-            return new ContainerPlan(bestChromosome._models);
+            return new ContainerPlan(_fittestChromosome._models);
         }
 
         private void Mutation()
         {
+            /*
+             * Do some swapping with container models.
+             * Up and down perchance.
+             */
         }
 
         private void NaturalSelection()
@@ -146,7 +186,6 @@ namespace GeneticAlgorithms.Container
                 // Add their crossover to the new population
                 newPopulation.Add(crossOver(parentA, parentB));
             }
-
             _population = newPopulation;
         }
 
@@ -174,6 +213,18 @@ namespace GeneticAlgorithms.Container
                 }
             }
 
+            int randomMutation = random.Next(0, 10);
+            if (randomMutation == 0)
+            {
+                int randomLevelA = random.Next(0, newChromosome._models.Count);
+                int randomLevelB = random.Next(0, newChromosome._models.Count);
+                int randomSwapA = random.Next(0, newChromosome._models[randomLevelA].Count);
+                int randomSwapB = random.Next(0, newChromosome._models[randomLevelB].Count);
+                
+                ContainerModel temp = newChromosome._models[randomLevelA][randomSwapA];
+                newChromosome._models[randomLevelA][randomSwapA] = newChromosome._models[randomLevelB][randomSwapB];
+                newChromosome._models[randomLevelB][randomSwapB] = temp;
+            }
             return newChromosome;
         }
 
@@ -215,7 +266,7 @@ namespace GeneticAlgorithms.Container
 
             float weightFitness = GetWeightFitnessFromDifference(difference);
 
-            float priorityWeight = PriorityWeight(chromosome);
+            float priorityWeight = GetPriorityWeight(chromosome);
             
             // This is as low as possible
             float normalizedPriorityFitness = (priorityWeight - 0) / (3000 - 0);
@@ -223,12 +274,28 @@ namespace GeneticAlgorithms.Container
             // So revert is with 1 - fitness
             float priorityFitness = (1 - normalizedPriorityFitness) * 100;
 
-            float averageFitness = (priorityFitness + weightFitness) / 2;
+            // 50 / 50 weighting for final value.
+            //float averageFitness = (priorityFitness + weightFitness) / 2;
+            
+            //25 / 75 weighting
+            float averageFitness = (priorityFitness * 2 + weightFitness) / 2;
+            
+            // 75 / 25 weighting
+//            float averageFitness = (priorityFitness + weightFitness * 2) / 2;
 
+            chromosome.weight = priorityWeight + difference;
+
+
+            if (chromosome.weight < _fittestChromosomeWeight)
+            {
+                _fittestChromosome = chromosome;
+                _fittestChromosomeWeight = chromosome.weight;
+            }
+            
             return averageFitness;
         }
 
-        private float PriorityWeight(Chromosome chromosome)
+        private float GetPriorityWeight(Chromosome chromosome)
         {
             float weight = 0f;
             
