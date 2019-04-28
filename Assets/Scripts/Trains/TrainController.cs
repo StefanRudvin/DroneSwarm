@@ -8,7 +8,7 @@ public class TrainController : MonoBehaviour {
 	private Vector3 finalTarget;
 
 	public float toStation = 1F;
-	public float fromStation = 2.0F;
+	public float fromStation = 1.1F;
 
 	private Vector3 velocity = Vector3.zero;
 
@@ -16,12 +16,12 @@ public class TrainController : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		stationTarget = transform.TransformPoint (0, 0, 280);
-		finalTarget = transform.TransformPoint (0, 0, 1000);
+		finalTarget = transform.TransformPoint (0, 0, 4000);
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		if (transform.position.z > 250) {
+		if (transform.position.z > 1800) {
 			Destroy(this.gameObject);
 		}
 

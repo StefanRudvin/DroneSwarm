@@ -127,11 +127,19 @@ namespace GeneticAlgorithms.Drone
                     break;
                 }
 
-                CreateMatingPool();
+                try
+                {
+                    CreateMatingPool();
 
-                NaturalSelection();
+                    NaturalSelection();
 
-                ProcessPopulation(i);
+                    ProcessPopulation(i);
+                }
+                catch (Exception e)
+                {
+                    Debug.Log("wrong!");
+                    throw;
+                }
             }
         }
 
@@ -402,6 +410,11 @@ namespace GeneticAlgorithms.Drone
                     _matingPool.Add(chromosome);
                 }
             }
+            Debug.Log("wassaa");
+            if (_matingPool.Count == 0)
+            {
+                Debug.Log("wassaa");
+            }
         }
 
         public void AddContainers(List<GameObject> containers)
@@ -427,6 +440,7 @@ namespace GeneticAlgorithms.Drone
             }
             
             SetFitnesses(minWeight, maxWeight);
+            
             if (DebugAlgo)
             {
                 AddFitnessToResultsDictionary(generationCount, _fittestChromosome._weight);
@@ -459,6 +473,11 @@ namespace GeneticAlgorithms.Drone
 
                 chromosome._fitness = fitness;
                 fitnesses.Add(fitness);
+
+                if (fitness == 0)
+                {
+                    Debug.Log("wassaa");
+                }
 
                 if (chromosome._weight > _fittestChromosomeWeight) continue;
 

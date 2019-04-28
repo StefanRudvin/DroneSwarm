@@ -23,6 +23,8 @@ public class GameController : MonoBehaviour
 
     public GameObject sampleContainer;
 
+    private bool runOnce = false;
+
     public DroneGeneticAlgorithm _droneGeneticAlgorithm;
 
     private Chromosome _dronePlan;
@@ -225,14 +227,17 @@ public class GameController : MonoBehaviour
 
         // Return the list of new tasks from here.
         _taskManager._containers = _droneGeneticAlgorithm._containers;
-        if (_taskManager.Run())
+        
+        if (_taskManager.Run() && !runOnce)
         {
+            runOnce = true;
             _droneGeneticAlgorithm.SetContainers(_taskManager._containers);
             _droneGeneticAlgorithm.SetDroneCollections(_taskManager._chromosome._droneCollection);
             RunDroneGeneticAlgorithm();
             _droneCollections = _dronePlan._droneCollection;
             _taskManager.setChromosome(_dronePlan);
         }
+        
     }
 
     private void RunDroneGeneticAlgorithm()

@@ -27,7 +27,7 @@ public class TrainManager : MonoBehaviour {
 
 		platformPos = spawnPoints [spawnPointIndex].position + new Vector3 (0.0f, 1.0f, 222.0f);
 
-		Instantiate (platform, platformPos, spawnPoints[spawnPointIndex].rotation);
+		// Instantiate (platform, platformPos, spawnPoints[spawnPointIndex].rotation);
 
 	}
 }
