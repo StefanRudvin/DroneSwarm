@@ -35,38 +35,52 @@ public class GameController : MonoBehaviour
 
     private void Start()
     {
-        _droneGeneticAlgorithm = new DroneGeneticAlgorithm();
-        createContainersAndMapToShip();
-        instantiateDroneCollections();
-
-        _droneGeneticAlgorithm.SetDroneCollections(_droneCollections);
-
-        RunDroneGeneticAlgorithm();
-
-        if (DebugContainerAlgo || DebugDroneAlgo) ResetResults();
-
-        if (DebugDroneAlgo)
+        try
         {
-            for (int i = 0; i < 101; i++)
+            _droneGeneticAlgorithm = new DroneGeneticAlgorithm();
+            createContainersAndMapToShip();
+            instantiateDroneCollections();
+
+            _droneGeneticAlgorithm.SetDroneCollections(_droneCollections);
+
+            // Set initial drone run before update()
+            RunDroneGeneticAlgorithm();
+
+            if (DebugContainerAlgo || DebugDroneAlgo) ResetResults();
+
+            if (DebugDroneAlgo)
             {
-                RunDroneGeneticAlgorithm();
+                for (int i = 0; i < 101; i++)
+                {
+                    RunDroneGeneticAlgorithm();
+                }
+                // Used for statistics, don't remove!
+                float averageFitness = _droneGeneticAlgorithm.lastGenFitnesses.Average();
             }
 
-            float averageFitness = _droneGeneticAlgorithm.lastGenFitnesses.Average();
+            // Set new task manager with the drone plan from the GA. 
+            _taskManager = new TaskManager(_dronePlan)
+            {
+                _containers = _droneGeneticAlgorithm._containers
+            };
+
+            // Make sure above task manager works
+            if (_taskManager == null)
+            {
+                Debug.Log("TaskManager not loaded due to a previous error. Exiting.");
+                UnityEditor.EditorApplication.isPlaying = false;
+            }
         }
-
-        _taskManager = new TaskManager(_dronePlan)
+        catch (Exception e)
         {
-            _containers = _droneGeneticAlgorithm._containers
-        };
-
-
-        if (_taskManager == null)
-        {
-            Debug.Log("TaskManager not loaded.");
+            Debug.Log(string.Format("Game Controller Startup failed. Error: {0}", e));
+            UnityEditor.EditorApplication.isPlaying = false;
         }
     }
 
+    /*
+     * Reset results files used for evaluation.
+     */
     private void ResetResults()
     {
         string path = "Assets/Results/droneResults.csv";
@@ -130,6 +144,7 @@ public class GameController : MonoBehaviour
             // How would this work with the task system?
             // Create a task for one, then task for 2.
 
+            // Loop through every container, place them in the correct ship, ship controller and level accordingly.
             for (int i = 0; i < 10; i++)
             {
                 // Create both levels of container.
@@ -146,10 +161,8 @@ public class GameController : MonoBehaviour
                 firstLevelContainerController._ShipController = shipController;
                 firstLevelContainerController._shipPriority = shipController._priority;
                 firstLevelContainerController._containerModel = containerPlan.firstRow[i];
-
-//                GameObject  ChildGameObject1 = firstLevelContainer.transform.GetChild (0).gameObject;
-//                ChildGameObject1.GetComponent<Renderer>().material.color = Utility.createColorFromWeight(firstLevelContainerController._containerModel._weight);
-
+                
+                // Move 2nd layer container above first one.
                 temp.x += 20;
 
                 var secondLevelContainer = Instantiate(sampleContainer, temp, starting_transform.rotation);
@@ -162,9 +175,6 @@ public class GameController : MonoBehaviour
                 secondLevelContainerController._shipPriority = shipController._priority;
                 secondLevelContainerController._containerModel = containerPlan.secondRow[i];
 
-//                GameObject  ChildGameObject2 = secondLevelContainer.transform.GetChild (0).gameObject;
-//                ChildGameObject2.GetComponent<Renderer>().material.color = Utility.createColorFromWeight(secondLevelContainerController._containerModel._weight);
-//              
                 firstLevelContainerController._nextContainer = secondLevelContainer;
 
                 shipController._firstLevelBuildingContainers.Add(firstLevelContainer);
@@ -172,7 +182,7 @@ public class GameController : MonoBehaviour
                 shipController._containers.Add(firstLevelContainer);
                 shipController._containers.Add(secondLevelContainer);
             }
-
+            // Add the first level containers to the drone genetic algorithm.
             _droneGeneticAlgorithm.AddContainers(shipController._firstLevelBuildingContainers);
         }
     }
@@ -220,9 +230,10 @@ public class GameController : MonoBehaviour
     {
         if (_taskManager == null)
         {
-            Debug.Log("ok then.");
+            Debug.Log("TaskManager not loaded due to a previous error. Pausing.");
+            UnityEditor.EditorApplication.isPlaying = false;
         }
-
+        
         // Return the list of new tasks from here.
         _taskManager._containers = _droneGeneticAlgorithm._containers;
         if (_taskManager.Run())
@@ -237,7 +248,14 @@ public class GameController : MonoBehaviour
 
     private void RunDroneGeneticAlgorithm()
     {
-        var plan = _droneGeneticAlgorithm.Run();
-        if (plan != null) _dronePlan = plan;
+        try
+        {
+            _dronePlan = _droneGeneticAlgorithm.Run();
+        }
+        catch (Exception e)
+        {
+            Debug.Log(string.Format("Drone Genetic Algorithm experienced an error: {0}", e));
+            UnityEditor.EditorApplication.isPlaying = false;
+        }
     }
 }

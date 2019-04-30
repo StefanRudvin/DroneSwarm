@@ -69,16 +69,6 @@ namespace GeneticAlgorithms.Drone
 
         private void createResultsFile()
         {
-//            string path = "Assets/Results/";
-//            DateTime dateTime = DateTime.Now;
-//            filePath = string.Format("{0}-{1}-{2}-{3}-{4}-{5}.txt",
-//                path, dateTime.Day.ToString(),
-//                dateTime.Hour.ToString(),
-//                dateTime.Minute.ToString(),
-//                dateTime.Second.ToString(),
-//                dateTime.Millisecond.ToString()
-//            );
-//            File.Create(filePath);
             string path = "Assets/Results/droneResults.csv";
             filePath = path;
         }
@@ -281,6 +271,7 @@ namespace GeneticAlgorithms.Drone
             if (tasksA.Count != tasksB.Count || tasksA.Count == 0)
             {
                 Debug.Log("Chromosome counts don't match up!");
+                UnityEditor.EditorApplication.isPlaying = false;
             }
 
             Random random = new Random();
@@ -292,7 +283,7 @@ namespace GeneticAlgorithms.Drone
             List<Task> mergedTasks = new List<Task>();
             int currentInt = 0;
 
-            // XO crossover algorithm.
+            // OX crossover algorithm.
             for (int i = 0; i < tasksA.Count; i++)
             {
                 if (i >= sectionStart && i < sectionEnd)
@@ -303,9 +294,7 @@ namespace GeneticAlgorithms.Drone
                 {
                     while (true)
                     {
-                        // TODO Refactor the following..
                         bool found = false;
-
                         foreach (var item in section)
                         {
                             if (item._index == tasksB[currentInt]._index)
@@ -332,7 +321,7 @@ namespace GeneticAlgorithms.Drone
         private Chromosome CrossOver(Chromosome chromosomeA, Chromosome chromosomeB)
         {
             Chromosome newChromosome = CreateEmptyChromosome();
-            
+
             List<Task> mutatedLineUp = MergeTasks(chromosomeA, chromosomeB);
 //            List<Task> mutatedLineUp = Mutation(newLineUp);
 
@@ -364,6 +353,7 @@ namespace GeneticAlgorithms.Drone
                     runningCount += tasksPerDroneCollection;
                 }
             }
+
             return newChromosome;
         }
 
@@ -425,7 +415,7 @@ namespace GeneticAlgorithms.Drone
                 minWeight = Math.Min(minWeight, chromosome._weight);
                 maxWeight = Math.Max(maxWeight, chromosome._weight);
             }
-            
+
             SetFitnesses(minWeight, maxWeight);
             if (DebugAlgo)
             {

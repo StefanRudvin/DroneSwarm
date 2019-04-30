@@ -137,15 +137,13 @@ namespace GeneticAlgorithms.Container
             {
                 SetChromosomeFitnesses();
 
-//                if (maxWeightDifference == minWeightDifference) break;
+                if (maxWeightDifference == minWeightDifference) break;
 
                 CreateMatingPool();
 
                 NaturalSelection();
                 
                 _resultsDictionary.Add(i, _fittestChromosomeWeight);
-                
-                Mutation();
             }
         }
 
@@ -162,14 +160,6 @@ namespace GeneticAlgorithms.Container
         private ContainerPlan GetBestChromosome()
         {
             return new ContainerPlan(_fittestChromosome._models);
-        }
-
-        private void Mutation()
-        {
-            /*
-             * Do some swapping with container models.
-             * Up and down perchance.
-             */
         }
 
         private void NaturalSelection()
@@ -212,7 +202,8 @@ namespace GeneticAlgorithms.Container
                     newChromosome._models[1][i] = chromosomeB._models[1][i];
                 }
             }
-
+            
+            // CSP Mutation
             int randomMutation = random.Next(0, 10);
             if (randomMutation == 0)
             {
