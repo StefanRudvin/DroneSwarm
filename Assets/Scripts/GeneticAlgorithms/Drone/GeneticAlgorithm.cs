@@ -410,10 +410,10 @@ namespace GeneticAlgorithms.Drone
                     _matingPool.Add(chromosome);
                 }
             }
-            Debug.Log("wassaa");
+           
             if (_matingPool.Count == 0)
             {
-                Debug.Log("wassaa");
+                Debug.Log("Mating Pool is zero.");
             }
         }
 
@@ -476,7 +476,7 @@ namespace GeneticAlgorithms.Drone
 
                 if (fitness == 0)
                 {
-                    Debug.Log("wassaa");
+                    Debug.Log("Fitness is 0.");
                 }
 
                 if (chromosome._weight > _fittestChromosomeWeight) continue;
